@@ -44,6 +44,9 @@ public class WindowEvents {
      */
     public static Event onMouseScroll = new Event();
 
+    /**
+     * Called when a mouse button is pressed, passes the button code and action as
+     */
     public static Event onMouseClick = new Event();
 
     /**

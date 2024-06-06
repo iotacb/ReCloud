@@ -55,6 +55,14 @@ public class Texture {
         this.textureId = glGenTextures();
     }
 
+    /**
+     * Create a texture from a buffer
+     * 
+     * @param width
+     * @param height
+     * @param buffer
+     * @return
+     */
     public static Texture fromBuffer(int width, int height, ByteBuffer buffer) {
         Texture texture = new Texture();
         texture.width = width;
@@ -71,6 +79,11 @@ public class Texture {
         return texture;
     }
 
+    /**
+     * Load the texture
+     * 
+     * @return
+     */
     public Texture load() {
         textureId = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureId);

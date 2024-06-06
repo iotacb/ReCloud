@@ -31,8 +31,7 @@ public class Font {
 
     public Font() {
         this.glyphs = new HashMap<>();
-        this.font = new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.BOLD,
-                16);
+        this.font = new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.BOLD, 16);
         this.antiAliasing = true;
     }
 
@@ -43,14 +42,20 @@ public class Font {
     }
 
     public void create() {
-        this.texture = createFontTexture(font, antiAliasing);
+        try {
+            this.texture = createFontTexture(font, antiAliasing);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Handle texture creation failure
+        }
     }
 
     private BufferedImage imageFromChar(java.awt.Font font, char character, boolean antiAliasing) {
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics2d = image.createGraphics();
-        if (antiAliasing)
+        if (antiAliasing) {
             graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        }
 
         graphics2d.setFont(font);
         FontMetrics fontMetrics = graphics2d.getFontMetrics();
@@ -59,13 +64,15 @@ public class Font {
         int charWidth = fontMetrics.charWidth(character);
         int charHeight = fontMetrics.getHeight();
 
-        if (charWidth == 0)
+        if (charWidth == 0) {
             return null;
+        }
 
         image = new BufferedImage(charWidth, charHeight, BufferedImage.TYPE_INT_ARGB);
         graphics2d = image.createGraphics();
-        if (antiAliasing)
+        if (antiAliasing) {
             graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        }
 
         graphics2d.setFont(font);
         graphics2d.setPaint(java.awt.Color.WHITE);
@@ -74,18 +81,20 @@ public class Font {
         return image;
     }
 
-    private Texture createFontTexture(java.awt.Font font, boolean antiAliasing) {
+    private Texture createFontTexture(java.awt.Font font, boolean antiAliasing) throws Exception {
         int glyphWidth = 0;
         int glyphHeight = 0;
 
         for (int i = 32; i < 256; i++) {
-            if (i == 127)
+            if (i == 127) {
                 continue;
+            }
 
             char character = (char) i;
             BufferedImage charImage = imageFromChar(font, character, antiAliasing);
-            if (charImage == null)
+            if (charImage == null) {
                 continue;
+            }
 
             glyphWidth += charImage.getWidth();
             glyphHeight = Math.max(glyphHeight, charImage.getHeight());
@@ -99,13 +108,15 @@ public class Font {
         int x = 0;
 
         for (int i = 32; i < 256; i++) {
-            if (i == 127)
+            if (i == 127) {
                 continue;
+            }
 
             char character = (char) i;
             BufferedImage charImage = imageFromChar(font, character, antiAliasing);
-            if (charImage == null)
+            if (charImage == null) {
                 continue;
+            }
 
             int characterWidth = charImage.getWidth();
             int characterHeight = charImage.getHeight();
@@ -130,28 +141,24 @@ public class Font {
         image.getRGB(0, 0, width, height, pixels, 0, width);
 
         ByteBuffer buffer = MemoryUtil.memAlloc(width * height * 4);
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                int pixel = pixels[i * width + j];
-                buffer.put((byte) ((pixel >> 16) & 0xFF));
-                buffer.put((byte) ((pixel >> 8) & 0xFF));
-                buffer.put((byte) ((pixel & 0xFF)));
-                buffer.put((byte) ((pixel >> 24) & 0xFF));
+        try {
+            for (int i = 0; i < height; i++) {
+                for (int j = 0; j < width; j++) {
+                    int pixel = pixels[i * width + j];
+                    buffer.put((byte) ((pixel >> 16) & 0xFF));
+                    buffer.put((byte) ((pixel >> 8) & 0xFF));
+                    buffer.put((byte) (pixel & 0xFF));
+                    buffer.put((byte) ((pixel >> 24) & 0xFF));
+                }
             }
+            buffer.flip();
+            Texture fontTexture = Texture.fromBuffer(width, height, buffer);
+            return fontTexture;
+        } finally {
+            MemoryUtil.memFree(buffer);
         }
-        buffer.flip();
-        Texture fontTexture = Texture.fromBuffer(width, height, buffer);
-        MemoryUtil.memFree(buffer);
-        return fontTexture;
     }
 
-    /**
-     * Gets the width of the specified text.
-     *
-     * @param text The text
-     *
-     * @return Width of text
-     */
     public int getWidth(String text) {
         int width = 0;
         int lineWidth = 0;
@@ -172,13 +179,6 @@ public class Font {
         return width;
     }
 
-    /**
-     * Gets the height of the specified text.
-     *
-     * @param text The text
-     *
-     * @return Height of text
-     */
     public int getHeight(String text) {
         int height = 0;
         int lineHeight = 0;
@@ -230,7 +230,6 @@ public class Font {
                     glyph.width, glyph.height, color);
             drawX += glyph.width;
         }
-
     }
 
     private void drawTextureRegion(Texture texture, float x, float y, float regionX, float regionY, float regionWidth,
@@ -265,5 +264,4 @@ public class Font {
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);
     }
-
 }

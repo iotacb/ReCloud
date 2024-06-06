@@ -15,36 +15,10 @@
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
     <maven-javadoc-plugin.version>3.0.0</maven-javadoc-plugin.version>
-    <lwjgl.version>3.3.2</lwjgl.version>
-	<lwjgl.natives>natives-macos-arm64</lwjgl.natives>
+    <lwjgl.version>3.3.3</lwjgl.version>
+    <lwjgl.natives>natives-macos-arm64</lwjgl.natives>
+    <joml.version>1.10.5</joml.version>
   </properties>
-  <profiles>
-  
-    <profile>
-      <id>lwjgl-natives-macos-x86_64</id>
-      <activation>
-        <os>
-          <family>mac</family>
-          <arch>x86_64</arch>
-        </os>
-      </activation>
-      <properties>
-        <lwjgl.natives>natives-macos</lwjgl.natives>
-      </properties>
-    </profile>
-    <profile>
-      <id>lwjgl-natives-windows-amd64</id>
-      <activation>
-        <os>
-          <family>windows</family>
-          <arch>amd64</arch>
-        </os>
-      </activation>
-      <properties>
-        <lwjgl.natives>natives-windows</lwjgl.natives>
-      </properties>
-    </profile>
-  </profiles>
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -112,6 +86,11 @@
       <artifactId>lwjgl-stb</artifactId>
       <classifier>${lwjgl.natives}</classifier>
       <version>${lwjgl.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.joml</groupId>
+      <artifactId>joml</artifactId>
+      <version>${joml.version}</version>
     </dependency>
   </dependencies>
 

@@ -3,6 +3,7 @@ package de.kostari.cloud.core.scene;
 import java.util.ArrayList;
 
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.utils.render.Render2;
 
 public class Scene {
 
@@ -34,6 +35,7 @@ public class Scene {
             GameObject gameObject = gameObjects.get(i);
             gameObject.draw();
         }
+        Render2.flush();
     }
 
     /**

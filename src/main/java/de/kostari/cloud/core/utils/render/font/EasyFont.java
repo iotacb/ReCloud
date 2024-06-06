@@ -18,6 +18,14 @@ public class EasyFont {
         this.textSize = textSize;
     }
 
+    /**
+     * Draw text on the screen using the STB Easy Font.
+     * 
+     * @param text
+     * @param x
+     * @param y
+     * @param color
+     */
     public void drawText(String text, float x, float y, Color4f color) {
         if (color == null)
             color = Colors.WHITE;

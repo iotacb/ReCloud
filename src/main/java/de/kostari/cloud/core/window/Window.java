@@ -18,7 +18,8 @@ import de.kostari.cloud.Cloud;
 import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.utils.Atlas;
 import de.kostari.cloud.core.utils.math.Vector2f;
-import de.kostari.cloud.core.utils.types.Float4;
+import de.kostari.cloud.core.utils.render.Render2;
+import de.kostari.cloud.core.utils.types.Color4f;
 
 public class Window {
 
@@ -40,7 +41,10 @@ public class Window {
     private boolean centerOnStart = true;
     private boolean vsync = true;
 
-    private Float4 clearColor = new Float4(0, 0, 0, 0);
+    private float fpsCounter = 0;
+    private float fps = 0;
+
+    private Color4f clearColor = new Color4f(0, 0, 0, 0);
 
     private Window(
             int windowWidth,
@@ -140,8 +144,6 @@ public class Window {
         GLFW.glfwMakeContextCurrent(windowId);
         GLFW.glfwSwapInterval(vsync ? 1 : 0);
         GLFW.glfwShowWindow(windowId);
-        // TODO: Add callbacks
-        // TODO: Init audio
         GL.createCapabilities();
     }
 
@@ -171,6 +173,8 @@ public class Window {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+        Render2.init();
     }
 
     private void initialize() {
@@ -192,12 +196,12 @@ public class Window {
         setupALC();
         System.out.println("Setting up drawing");
         setupDrawing();
-
         System.out.println("Loading Atlas files");
         Atlas.loadAtlas();
     }
 
     private void destroy() {
+        Render2.cleanup();
         Callbacks.glfwFreeCallbacks(windowId);
         GLFW.glfwDestroyWindow(windowId);
         GLFW.glfwSetErrorCallback(null).free();
@@ -205,6 +209,12 @@ public class Window {
     }
 
     private void updateWindow() {
+        fpsCounter++;
+        if (Time.getTime() >= 1) {
+            fps = fpsCounter;
+            fpsCounter = 0;
+            Time.reset();
+        }
         Input.update();
         GLFW.glfwPollEvents();
         SceneManager.current().update();
@@ -252,5 +262,9 @@ public class Window {
 
     public Vector2f getWindowSize() {
         return new Vector2f(windowWidth, windowHeight);
+    }
+
+    public float getFps() {
+        return fps;
     }
 }

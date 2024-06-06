@@ -82,4 +82,8 @@ public class Mathf {
         return new Vector2f(x2 - x1, y2 - y1).normalize();
     }
 
+    public static float random(int i, int j) {
+        return (float) (Math.random() * (j - i) + i);
+    }
+
 }

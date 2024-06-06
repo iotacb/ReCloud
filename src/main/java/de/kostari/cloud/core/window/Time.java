@@ -23,4 +23,13 @@ public class Time {
         lastTime = currentTime;
     }
 
+    public static int getTime() {
+        return (int) time;
+    }
+
+    public static void reset() {
+        time = 0;
+        lastTime = (float) GLFW.glfwGetTime();
+    }
+
 }

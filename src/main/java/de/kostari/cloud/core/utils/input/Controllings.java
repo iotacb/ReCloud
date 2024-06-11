@@ -1,7 +1,7 @@
 package de.kostari.cloud.core.utils.input;
 
 import de.kostari.cloud.core.objects.GameObject;
-import de.kostari.cloud.core.utils.math.Vector2f;
+import de.kostari.cloud.core.utils.math.Vector2;
 import de.kostari.cloud.core.window.Input;
 import de.kostari.cloud.core.window.Time;
 
@@ -14,7 +14,7 @@ public class Controllings {
      * Delta time is automatically applied.
      * 
      * @see Input
-     * @see Vector2f
+     * @see Vector2
      * @see Time#delta
      * 
      * @param keyUp    The key to move up
@@ -28,7 +28,7 @@ public class Controllings {
             GameObject object) {
         float x = Input.keyState(keyRight) - Input.keyState(keyLeft);
         float y = Input.keyState(keyDown) - Input.keyState(keyUp);
-        Vector2f movement = new Vector2f(x, y).normalize().mul(speed * Time.delta);
+        Vector2 movement = new Vector2(x, y).normalize().mul(speed * Time.delta);
         object.transform.position.x += movement.x;
         object.transform.position.y += movement.y;
     }
@@ -71,7 +71,7 @@ public class Controllings {
      * otherwise it could
      * move past the target position.
      * 
-     * @see Vector2f
+     * @see Vector2
      * @see Time#delta
      * 
      * @param x      The x position to move to
@@ -81,10 +81,10 @@ public class Controllings {
      * @param object The object to move
      */
     public static void moveToward(float x, float y, float speed, float gap, GameObject object) {
-        Vector2f objectPositon = object.transform.position;
-        Vector2f targetPosition = new Vector2f(x, y);
-        Vector2f direction = targetPosition.sub(objectPositon).normalize();
-        Vector2f movement = direction.mul(speed * Time.delta);
+        Vector2 objectPositon = object.transform.position;
+        Vector2 targetPosition = new Vector2(x, y);
+        Vector2 direction = targetPosition.sub(objectPositon).normalize();
+        Vector2 movement = direction.mul(speed * Time.delta);
         if (objectPositon.distance(targetPosition) > gap) {
             object.transform.position.x += movement.x;
             object.transform.position.y += movement.y;
@@ -99,7 +99,7 @@ public class Controllings {
      * otherwise it could
      * move past the target position.
      * 
-     * @see Vector2f
+     * @see Vector2
      * @see Time#delta
      * 
      * @param targetPosition The position to move to
@@ -107,7 +107,7 @@ public class Controllings {
      * @param gap            The gap to stop moving
      * @param object         The object to move
      */
-    public static void moveToward(Vector2f targetPosition, float speed, float gap, GameObject object) {
+    public static void moveToward(Vector2 targetPosition, float speed, float gap, GameObject object) {
         moveToward(targetPosition.x, targetPosition.y, speed, gap, object);
     }
 
@@ -119,7 +119,7 @@ public class Controllings {
      * otherwise it could
      * move past the target position.
      * 
-     * @see Vector2f
+     * @see Vector2
      * @see Time#delta
      * 
      * @param x      The x to move away from
@@ -129,10 +129,10 @@ public class Controllings {
      * @param object The object to move
      */
     public static void moveFrom(float x, float y, float speed, float gap, GameObject object) {
-        Vector2f objectPositon = object.transform.position;
-        Vector2f targetPosition = new Vector2f(x, y);
-        Vector2f direction = targetPosition.sub(objectPositon).normalize();
-        Vector2f movement = direction.mul(speed * Time.delta);
+        Vector2 objectPositon = object.transform.position;
+        Vector2 targetPosition = new Vector2(x, y);
+        Vector2 direction = targetPosition.sub(objectPositon).normalize();
+        Vector2 movement = direction.mul(speed * Time.delta);
         if (objectPositon.distance(targetPosition) > gap) {
             object.transform.position.x -= movement.x;
             object.transform.position.y -= movement.y;
@@ -147,7 +147,7 @@ public class Controllings {
      * otherwise it could
      * move past the target position.
      * 
-     * @see Vector2f
+     * @see Vector2
      * @see Time#delta
      * 
      * @param targetPosition The position to move away from
@@ -155,7 +155,7 @@ public class Controllings {
      * @param gap            The gap to stop moving
      * @param object         The object to move
      */
-    public static void moveFrom(Vector2f targetPosition, float speed, float gap, GameObject object) {
+    public static void moveFrom(Vector2 targetPosition, float speed, float gap, GameObject object) {
         moveFrom(targetPosition.x, targetPosition.y, speed, gap, object);
     }
 

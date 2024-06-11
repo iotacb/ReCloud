@@ -3,7 +3,7 @@ package de.kostari.cloud.core.scene;
 import java.util.ArrayList;
 
 import de.kostari.cloud.core.objects.GameObject;
-import de.kostari.cloud.core.utils.render.Render2;
+import de.kostari.cloud.core.utils.render.Render;
 
 public class Scene {
 
@@ -11,10 +11,14 @@ public class Scene {
 
     public boolean isInitialized;
 
+    private Camera camera;
+
     /**
      * Called when the scene is loaded.
      */
     public void init() {
+        this.camera = new Camera(0, 0);
+        this.isInitialized = true;
     }
 
     /**
@@ -31,17 +35,20 @@ public class Scene {
      * Called every frame after update.
      */
     public void draw() {
+        // camera.applyTransforms();
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject gameObject = gameObjects.get(i);
             gameObject.draw();
         }
-        Render2.flush();
+        Render.flush();
+        // camera.resetTransforms();
     }
 
     /**
      * Called when the scene is unloaded.
      */
     public void dispose() {
+        this.isInitialized = false;
     }
 
     /**
@@ -71,6 +78,10 @@ public class Scene {
 
     public ArrayList<GameObject> getGameObjects() {
         return gameObjects;
+    }
+
+    public Camera getCamera() {
+        return camera;
     }
 
 }

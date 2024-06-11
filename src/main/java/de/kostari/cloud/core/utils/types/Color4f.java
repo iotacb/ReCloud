@@ -20,4 +20,9 @@ public class Color4f {
         this.b = color.b;
         this.a = color.a;
     }
+
+    @Override
+    public String toString() {
+        return "Color4f [r=" + r + ", g=" + g + ", b=" + b + ", a=" + a + "]";
+    }
 }

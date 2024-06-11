@@ -2,7 +2,6 @@ package de.kostari.cloud.core.ui.elements;
 
 import de.kostari.cloud.core.ui.UIElement;
 import de.kostari.cloud.core.utils.Colors;
-import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.utils.types.Color4f;
 
 public class Panel extends UIElement {
@@ -11,8 +10,8 @@ public class Panel extends UIElement {
 
     @Override
     public void draw() {
-        Render.color(panelColor);
-        Render.drawRect(getX(), getY(), getWidth(), getHeight());
+        // Render.color(panelColor);
+        // Render.drawRect(getX(), getY(), getWidth(), getHeight());
     }
 
     @Override

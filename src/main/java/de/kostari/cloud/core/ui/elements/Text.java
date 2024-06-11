@@ -1,7 +1,6 @@
 package de.kostari.cloud.core.ui.elements;
 
 import de.kostari.cloud.core.ui.UIElement;
-import de.kostari.cloud.core.utils.render.Render;
 
 public class Text extends UIElement {
 
@@ -11,14 +10,14 @@ public class Text extends UIElement {
         this.text = text;
         setX(x);
         setY(y);
-        setWidth(Render.getTextWidth(text) * 2);
-        setHeight(Render.getTextHeight(text) * 2);
+        // setWidth(Render.getTextWidth(text) * 2);
+        // setHeight(Render.getTextHeight(text) * 2);
     }
 
     @Override
     public void draw() {
         drawBounds();
-        Render.drawText(text, getX(), getY());
+        // Render.drawText(text, getX(), getY());
     }
 
     @Override

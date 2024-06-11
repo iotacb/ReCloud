@@ -51,4 +51,8 @@ public class Colors {
         return new Color4f(r, g, b, color.a);
     }
 
+    public static Color4f random() {
+        return new Color4f((float) Math.random(), (float) Math.random(), (float) Math.random(), 1);
+    }
+
 }

@@ -2,7 +2,7 @@ package de.kostari.cloud.core.window;
 
 import org.lwjgl.glfw.GLFW;
 
-import de.kostari.cloud.core.utils.math.Vector2f;
+import de.kostari.cloud.core.utils.math.Vector2;
 
 public class Input {
 
@@ -12,11 +12,11 @@ public class Input {
     private static boolean mouseButtonsPressed[] = new boolean[GLFW.GLFW_MOUSE_BUTTON_LAST];
     private static boolean mouseButtonsPressedLast[] = new boolean[GLFW.GLFW_MOUSE_BUTTON_LAST];
 
-    protected static float mouseX;
-    protected static float mouseY;
+    protected static int mouseX;
+    protected static int mouseY;
 
-    protected static float scrollX;
-    protected static float scrollY;
+    protected static int scrollX;
+    protected static int scrollY;
 
     protected static void listenKeys(long window, int key, int scancode, int action, int mods) {
         if (action == GLFW.GLFW_PRESS) {
@@ -104,7 +104,7 @@ public class Input {
      * 
      * @return the current mouse x position
      */
-    public static float getMouseX() {
+    public static int getMouseX() {
         return mouseX;
     }
 
@@ -113,7 +113,7 @@ public class Input {
      * 
      * @return the current mouse y position
      */
-    public static float getMouseY() {
+    public static int getMouseY() {
         return mouseY;
     }
 
@@ -122,8 +122,8 @@ public class Input {
      * 
      * @return the current mouse position as a Vector2i
      */
-    public static Vector2f getMousePosition() {
-        return new Vector2f(mouseX, mouseY);
+    public static Vector2 getMousePosition() {
+        return new Vector2(mouseX, mouseY);
     }
 
     /**
@@ -131,7 +131,7 @@ public class Input {
      * 
      * @return the current scroll x position
      */
-    public static float getScrollX() {
+    public static int getScrollX() {
         return scrollX;
     }
 
@@ -140,7 +140,7 @@ public class Input {
      * 
      * @return the current scroll y position
      */
-    public static float getScrollY() {
+    public static int getScrollY() {
         return scrollY;
     }
 
@@ -149,8 +149,8 @@ public class Input {
      * 
      * @return the current scroll position as a Vector2i
      */
-    public static Vector2f getScroll() {
-        return new Vector2f(scrollX, scrollY);
+    public static Vector2 getScroll() {
+        return new Vector2(scrollX, scrollY);
     }
 
     public static int keyState(int keyCode) {

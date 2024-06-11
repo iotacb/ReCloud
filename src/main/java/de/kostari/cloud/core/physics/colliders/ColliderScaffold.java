@@ -1,8 +1,8 @@
 package de.kostari.cloud.core.physics.colliders;
 
 import de.kostari.cloud.core.components.Transform;
-import de.kostari.cloud.core.utils.math.Mathf;
-import de.kostari.cloud.core.utils.math.Vector2f;
+import de.kostari.cloud.core.utils.math.MathUtil;
+import de.kostari.cloud.core.utils.math.Vector2;
 
 public abstract class ColliderScaffold {
 
@@ -10,31 +10,31 @@ public abstract class ColliderScaffold {
     protected ColliderTypes type;
 
     protected Face[] faces;
-    protected Vector2f[] relatives;
-    protected Vector2f[] absolutes;
+    protected Vector2[] relatives;
+    protected Vector2[] absolutes;
 
-    protected Vector2f relativeCentroid;
-    protected Vector2f absoluteCentroid;
+    protected Vector2 relativeCentroid;
+    protected Vector2 absoluteCentroid;
 
     protected int vertices;
 
     protected CircleCollider boundingCircle;
 
-    public ColliderScaffold(Vector2f... relatives) {
+    public ColliderScaffold(Vector2... relatives) {
         this(ColliderTypes.POLYGON, relatives);
     }
 
-    public ColliderScaffold(ColliderTypes type, Vector2f... relatives) {
+    public ColliderScaffold(ColliderTypes type, Vector2... relatives) {
         this.type = type;
         if (type == ColliderTypes.CIRCLE) {
             this.vertices = 0;
-            this.relatives = new Vector2f[0];
-            this.absolutes = new Vector2f[0];
+            this.relatives = new Vector2[0];
+            this.absolutes = new Vector2[0];
             this.faces = new Face[0];
         } else {
             this.vertices = relatives.length;
             this.relatives = relatives;
-            this.absolutes = new Vector2f[vertices];
+            this.absolutes = new Vector2[vertices];
             this.faces = new Face[vertices];
         }
     }
@@ -46,7 +46,8 @@ public abstract class ColliderScaffold {
     }
 
     protected void initializeSphere() {
-        this.boundingCircle = new CircleCollider(relativeCentroid, Mathf.boundingSphere(relativeCentroid, relatives));
+        this.boundingCircle = new CircleCollider(relativeCentroid,
+                MathUtil.boundingSphere(relativeCentroid, relatives));
     }
 
     protected void updateCollider() {
@@ -63,11 +64,11 @@ public abstract class ColliderScaffold {
         return vertices;
     }
 
-    public Vector2f[] getRelatives() {
+    public Vector2[] getRelatives() {
         return relatives;
     }
 
-    public Vector2f[] getAbsolutes() {
+    public Vector2[] getAbsolutes() {
         return absolutes;
     }
 
@@ -79,8 +80,8 @@ public abstract class ColliderScaffold {
         return type;
     }
 
-    public Vector2f support(Vector2f vector) {
-        return Mathf.maxDotPoint(absolutes, vector);
+    public Vector2 support(Vector2 vector) {
+        return MathUtil.maxDotPoint(absolutes, vector);
     }
 
 }

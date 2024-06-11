@@ -1,26 +1,26 @@
 package de.kostari.cloud.core.components;
 
-import de.kostari.cloud.core.utils.math.Vector2f;
+import de.kostari.cloud.core.utils.math.Vector2;
 
 public class Transform extends Component {
 
-    public Vector2f position;
-    public Vector2f localPosition;
-    public Vector2f scale;
+    public Vector2 position;
+    public Vector2 localPosition;
+    public Vector2 scale;
     public float rotation;
 
-    public Transform(Vector2f position, Vector2f scale) {
+    public Transform(Vector2 position, Vector2 scale) {
         this.position = position;
-        this.localPosition = Vector2f.ZERO.clone();
+        this.localPosition = Vector2.ZERO.clone();
         this.scale = scale;
     }
 
     public Transform() {
-        this(Vector2f.ZERO.clone(), Vector2f.ONE.clone());
+        this(Vector2.ZERO.clone(), Vector2.ONE.clone());
     }
 
-    public Transform(Vector2f position) {
-        this(position, Vector2f.ONE.clone());
+    public Transform(Vector2 position) {
+        this(position, Vector2.ONE.clone());
     }
 
     public Transform(Transform transform) {

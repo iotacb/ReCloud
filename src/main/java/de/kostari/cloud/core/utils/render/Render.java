@@ -1,186 +1,295 @@
 package de.kostari.cloud.core.utils.render;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.system.MemoryUtil;
 
-import de.kostari.cloud.core.utils.math.Vector2f;
-import de.kostari.cloud.core.utils.render.font.EasyFont;
 import de.kostari.cloud.core.utils.types.Color4f;
+
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Render {
 
-    private static EasyFont font = new EasyFont(18);
+    private static final int MAX_BATCH_SIZE = 1000;
+    private static final int VERTEX_SIZE = 2 + 2 + 4; // 2 for position, 2 for texture coordinates, 4 for color
+    private static final int RECT_VERTICES = 4;
+    private static final int INDICES_PER_RECT = 6;
 
-    /**
-     * Sets the color of the next drawn object.
-     * 
-     * @param r The red value of the color.
-     * @param g The green value of the color.
-     * @param b The blue value of the color.
-     * @param a The alpha value of the color.
-     */
-    public static void color(float r, float g, float b, float a) {
-        GL11.glColor4f(r, g, b, a);
+    private static int vboId;
+    private static int eboId;
+    private static FloatBuffer vertexBuffer;
+    private static IntBuffer indexBuffer;
+    private static List<Shape> nonTexturedShapes;
+    private static List<Shape> texturedShapes;
+    private static boolean initialized = false;
+
+    private static Shader nonTexturedShader;
+    private static Shader texturedShader;
+
+    private static class Shape {
+        float[] vertices;
+        int[] indices;
+        int textureID = -1;
     }
 
-    /**
-     * Sets the color of the next drawn object.
-     * Alpha will be set to 1.
-     * 
-     * @param r The red value of the color.
-     * @param g The green value of the color.
-     * @param b The blue value of the color.
-     */
-    public static void color(float r, float g, float b) {
-        color(r, g, b, 1);
+    public static void init(int windowWidth, int windowHeight) {
+        if (initialized)
+            return;
+
+        vboId = GL15.glGenBuffers();
+        eboId = GL15.glGenBuffers();
+
+        vertexBuffer = MemoryUtil.memAllocFloat(MAX_BATCH_SIZE * RECT_VERTICES * VERTEX_SIZE);
+        indexBuffer = MemoryUtil.memAllocInt(MAX_BATCH_SIZE * INDICES_PER_RECT);
+
+        nonTexturedShapes = new ArrayList<>();
+        texturedShapes = new ArrayList<>();
+
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+        GL20.glVertexAttribPointer(0, 2, GL11.GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, 0);
+        GL20.glEnableVertexAttribArray(0);
+        GL20.glVertexAttribPointer(1, 2, GL11.GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, 2 * Float.BYTES);
+        GL20.glEnableVertexAttribArray(1);
+        GL20.glVertexAttribPointer(2, 4, GL11.GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, 4 * Float.BYTES);
+        GL20.glEnableVertexAttribArray(2);
+
+        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboId);
+
+        nonTexturedShader = new Shader();
+        nonTexturedShader.attachShaderFromFile(GL20.GL_VERTEX_SHADER, "./shader/vertex.glsl");
+        nonTexturedShader.attachShaderFromFile(GL20.GL_FRAGMENT_SHADER, "./shader/fragment.glsl");
+        nonTexturedShader.link();
+
+        texturedShader = new Shader();
+        texturedShader.attachShaderFromFile(GL20.GL_VERTEX_SHADER, "./shader/tex_vertex.glsl");
+        texturedShader.attachShaderFromFile(GL20.GL_FRAGMENT_SHADER, "./shader/tex_fragment.glsl");
+        texturedShader.link();
+
+        float[] projectionMatrix = new float[16];
+        setOrtho2D(projectionMatrix, 0, windowWidth, windowHeight, 0);
+
+        nonTexturedShader.bind();
+        nonTexturedShader.createUniform("projection");
+        nonTexturedShader.setUniform("projection", projectionMatrix);
+        nonTexturedShader.unbind();
+
+        texturedShader.bind();
+        texturedShader.createUniform("projection");
+        texturedShader.createUniform("textureSampler");
+        texturedShader.setUniform("projection", projectionMatrix);
+        texturedShader.setUniform("textureSampler", 0);
+        texturedShader.unbind();
+
+        initialized = true;
     }
 
-    /**
-     * Sets the color of the next drawn object.
-     * Uses colors values from 0 to 255.
-     * And converts them to values from 0 to 1.
-     * 
-     * @param r The red value of the color.
-     * @param g The green value of the color.
-     * @param b The blue value of the color.
-     * @param a The alpha value of the color.
-     */
-    public static void color255(float r, float g, float b, float a) {
-        color(r / 255f, g / 255f, b / 255f, a / 255f);
+    private static void setOrtho2D(float[] matrix, float left, float right, float bottom, float top) {
+        matrix[0] = 2.0f / (right - left);
+        matrix[1] = 0.0f;
+        matrix[2] = 0.0f;
+        matrix[3] = 0.0f;
+
+        matrix[4] = 0.0f;
+        matrix[5] = 2.0f / (top - bottom);
+        matrix[6] = 0.0f;
+        matrix[7] = 0.0f;
+
+        matrix[8] = 0.0f;
+        matrix[9] = 0.0f;
+        matrix[10] = -1.0f;
+        matrix[11] = 0.0f;
+
+        matrix[12] = -(right + left) / (right - left);
+        matrix[13] = -(top + bottom) / (top - bottom);
+        matrix[14] = 0.0f;
+        matrix[15] = 1.0f;
     }
 
-    /**
-     * Sets the color of the next drawn object.
-     * Uses colors values from 0 to 255.
-     * And converts them to values from 0 to 1.
-     * 
-     * @param r The red value of the color.
-     * @param g The green value of the color.
-     * @param b The blue value of the color.
-     */
-    public static void color255(float r, float g, float b) {
-        color255(r, g, b);
+    public static void cleanup() {
+        if (!initialized)
+            return;
+
+        GL20.glDisableVertexAttribArray(0);
+        GL20.glDisableVertexAttribArray(1);
+        GL20.glDisableVertexAttribArray(2);
+
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+        GL15.glDeleteBuffers(vboId);
+
+        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
+        GL15.glDeleteBuffers(eboId);
+
+        MemoryUtil.memFree(vertexBuffer);
+        MemoryUtil.memFree(indexBuffer);
+
+        nonTexturedShader.cleanup();
+        texturedShader.cleanup();
+
+        initialized = false;
     }
 
-    /**
-     * Sets the color of the next drawn object.
-     * 
-     * @see Color4f
-     * 
-     * @param color The color to set.
-     */
-    public static void color(Color4f color) {
-        color(color.r, color.g, color.b, color.a);
+    public static void beginBatch() {
+        nonTexturedShapes.clear();
+        texturedShapes.clear();
     }
 
-    public static void resetColor() {
-        color(1, 1, 1, 1);
-    }
+    private static void drawNonTexturedShapesBatch(List<Shape> shapes) {
+        vertexBuffer.clear();
+        indexBuffer.clear();
 
-    /**
-     * Draws a rectangle to the screen at the specified position and size.
-     * 
-     * @param x      The x position of the rectangle.
-     * @param y      The y position of the rectangle.
-     * @param width  The width of the rectangle.
-     * @param height The height of the rectangle.
-     */
-    public static void drawRect(float x, float y, float width, float height) {
-        GL11.glPushMatrix();
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glBegin(GL11.GL_QUADS);
-        GL11.glVertex2f(x, y);
-        GL11.glVertex2f(x + width, y);
-        GL11.glVertex2f(x + width, y + height);
-        GL11.glVertex2f(x, y + height);
-        GL11.glEnd();
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glPopMatrix();
-    }
+        int vertexIndex = 0;
 
-    public static void drawRect(Vector2f position, Vector2f size) {
-        drawRect(position.x, position.y, size.x, size.y);
-    }
-
-    public static void drawRect(Vector2f position, float width, float height) {
-        drawRect(position.x, position.y, width, height);
-    }
-
-    public static void drawRectCenter(float x, float y, float width, float height) {
-        drawRect(x - width / 2, y - height / 2, width, height);
-    }
-
-    public static void drawRectCenter(Vector2f position, Vector2f size) {
-        drawRectCenter(position.x, position.y, size.x, size.y);
-    }
-
-    public static void drawRectCenter(Vector2f position, float width, float height) {
-        drawRectCenter(position.x, position.y, width, height);
-    }
-
-    public static void drawTexture(float x, float y, float width, float height, int textureId) {
-        GL11.glPushMatrix();
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
-        GL11.glBegin(GL11.GL_QUADS);
-        GL11.glTexCoord2d(0, 0);
-        GL11.glVertex2d(x, y);
-        GL11.glTexCoord2d(1, 0);
-        GL11.glVertex2d(x + width, y);
-        GL11.glTexCoord2d(1, 1);
-        GL11.glVertex2d(x + width, y + height);
-        GL11.glTexCoord2d(0, 1);
-        GL11.glVertex2d(x, y + height);
-        GL11.glEnd();
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glPopMatrix();
-    }
-
-    public static void drawTextureCenter(float x, float y, float width, float height, int textureId) {
-        drawTexture(x - width / 2, y - height / 2, width, height, textureId);
-    }
-
-    public static void drawLine(float x1, float y1, float x2, float y2) {
-        GL11.glPushMatrix();
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glBegin(GL11.GL_LINES);
-        {
-            GL11.glVertex2f(x1, y1);
-            GL11.glVertex2f(x2, y2);
+        for (Shape shape : shapes) {
+            vertexBuffer.put(shape.vertices);
+            for (int i = 0; i < shape.indices.length; i++) {
+                indexBuffer.put(shape.indices[i] + vertexIndex);
+            }
+            vertexIndex += shape.vertices.length / VERTEX_SIZE;
         }
-        GL11.glEnd();
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glPopMatrix();
+
+        vertexBuffer.flip();
+        indexBuffer.flip();
+
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_DYNAMIC_DRAW);
+
+        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboId);
+        GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_DYNAMIC_DRAW);
+
+        nonTexturedShader.bind();
+        GL11.glDrawElements(GL11.GL_TRIANGLES, indexBuffer.limit(), GL11.GL_UNSIGNED_INT, 0);
+        nonTexturedShader.unbind();
     }
 
-    public static void drawText(String text, float x, float y) {
-        font.drawText(text, x, y, null);
+    private static void drawTexturedShapesBatch(List<Shape> shapes) {
+        vertexBuffer.clear();
+        indexBuffer.clear();
+
+        int vertexIndex = 0;
+        int lastTextureID = -1;
+
+        for (Shape shape : shapes) {
+            if (shape.textureID != lastTextureID) {
+                if (lastTextureID != -1) {
+                    vertexBuffer.flip();
+                    indexBuffer.flip();
+
+                    GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+                    GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_DYNAMIC_DRAW);
+
+                    GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboId);
+                    GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_DYNAMIC_DRAW);
+
+                    texturedShader.bind();
+                    GL11.glDrawElements(GL11.GL_TRIANGLES, indexBuffer.limit(), GL11.GL_UNSIGNED_INT, 0);
+                    texturedShader.unbind();
+
+                    vertexBuffer.clear();
+                    indexBuffer.clear();
+                    vertexIndex = 0;
+                }
+                // System.out.println(shape.textureID);
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, shape.textureID); // Bind the texture
+                lastTextureID = shape.textureID;
+            }
+
+            vertexBuffer.put(shape.vertices);
+            for (int i = 0; i < shape.indices.length; i++) {
+                indexBuffer.put(shape.indices[i] + vertexIndex);
+            }
+            vertexIndex += shape.vertices.length / VERTEX_SIZE;
+        }
+
+        vertexBuffer.flip();
+        indexBuffer.flip();
+
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
+        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_DYNAMIC_DRAW);
+
+        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboId);
+        GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_DYNAMIC_DRAW);
+
+        texturedShader.bind();
+        GL11.glDrawElements(GL11.GL_TRIANGLES, indexBuffer.limit(), GL11.GL_UNSIGNED_INT, 0);
+        texturedShader.unbind();
     }
 
-    public static void drawTextCenter(String text, float x, float y) {
-        font.drawText(text, x - getTextWidth(text), y - getTextHeight(text), null);
+    private static void drawNonTexturedShapes() {
+        int totalShapes = nonTexturedShapes.size();
+        int batches = (totalShapes / MAX_BATCH_SIZE) + 1;
+
+        for (int i = 0; i < batches; i++) {
+            int start = i * MAX_BATCH_SIZE;
+            int end = Math.min(start + MAX_BATCH_SIZE, totalShapes);
+            drawNonTexturedShapesBatch(nonTexturedShapes.subList(start, end));
+        }
     }
 
-    public static int getTextWidth(String text) {
-        return font.getWidth(text);
+    private static void drawTexturedShapes() {
+        int totalShapes = texturedShapes.size();
+        int batches = (totalShapes / MAX_BATCH_SIZE) + 1;
+
+        for (int i = 0; i < batches; i++) {
+            int start = i * MAX_BATCH_SIZE;
+            int end = Math.min(start + MAX_BATCH_SIZE, totalShapes);
+            drawTexturedShapesBatch(texturedShapes.subList(start, end));
+        }
     }
 
-    public static int getTextHeight(String text) {
-        return font.getHeight(text);
+    public static void flush() {
+        drawNonTexturedShapes();
+        drawTexturedShapes();
+        beginBatch();
     }
 
+    private static void addShape(Shape shape) {
+        if (shape.textureID == -1) {
+            nonTexturedShapes.add(shape);
+        } else {
+            texturedShapes.add(shape);
+        }
+    }
+
+    public static void drawRect(int x, int y, int width, int height, boolean centered, Color4f color) {
+        if (centered) {
+            x -= width / 2;
+            y -= height / 2;
+        }
+        if (color == null)
+            color = new Color4f(1, 1, 1, 1);
+
+        Shape shape = new Shape();
+        shape.vertices = new float[] {
+                x, y, 0, 0, color.r, color.g, color.b, color.a,
+                x + width, y, 0, 0, color.r, color.g, color.b, color.a,
+                x + width, y + height, 0, 0, color.r, color.g, color.b, color.a,
+                x, y + height, 0, 0, color.r, color.g, color.b, color.a
+        };
+        shape.indices = new int[] { 0, 1, 2, 2, 3, 0 };
+        addShape(shape);
+    }
+
+    public static void drawTexture(int x, int y, int width, int height, boolean centered, int textureID) {
+        if (centered) {
+            x -= width / 2;
+            y -= height / 2;
+        }
+        if (textureID == -1)
+            return;
+
+        Shape shape = new Shape();
+        shape.textureID = textureID;
+        shape.vertices = new float[] {
+                x, y, 0, 0, 1, 1, 1, 1, // Bottom-left corner
+                x + width, y, 1, 0, 1, 1, 1, 1, // Bottom-right corner
+                x + width, y + height, 1, 1, 1, 1, 1, 1, // Top-right corner
+                x, y + height, 0, 1, 1, 1, 1, 1 // Top-left corner
+        };
+        shape.indices = new int[] { 0, 1, 2, 2, 3, 0 };
+        addShape(shape);
+    }
 }

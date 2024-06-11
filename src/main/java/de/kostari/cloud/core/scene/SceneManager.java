@@ -1,5 +1,7 @@
 package de.kostari.cloud.core.scene;
 
+import de.kostari.cloud.core.window.Window;
+
 public class SceneManager {
 
     private static Scene currentScene;
@@ -17,7 +19,7 @@ public class SceneManager {
             lastScene.dispose();
         }
         currentScene = scene;
-        if (!currentScene.isInitialized)
+        if (!currentScene.isInitialized && Window.instance.isInitialized())
             currentScene.init();
     }
 

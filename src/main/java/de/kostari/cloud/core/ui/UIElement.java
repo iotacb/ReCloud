@@ -1,7 +1,6 @@
 package de.kostari.cloud.core.ui;
 
 import de.kostari.cloud.core.utils.Colors;
-import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.window.Input;
 
 public abstract class UIElement {
@@ -109,12 +108,16 @@ public abstract class UIElement {
     }
 
     public void drawBounds() {
-        Render.color(isHovered() ? Colors.GREEN : Colors.BLUE);
-        Render.drawLine(x - width / 2, y - height / 2, x + width / 2, y - height / 2);
-        Render.drawLine(x + width / 2, y - height / 2, x + width / 2, y + height / 2);
-        Render.drawLine(x + width / 2, y + height / 2, x - width / 2, y + height / 2);
-        Render.drawLine(x - width / 2, y + height / 2, x - width / 2, y - height / 2);
-        Render.resetColor();
+        // Render.color(isHovered() ? Colors.GREEN : Colors.BLUE);
+        // Render.drawLine(x - width / 2, y - height / 2, x + width / 2, y - height /
+        // 2);
+        // Render.drawLine(x + width / 2, y - height / 2, x + width / 2, y + height /
+        // 2);
+        // Render.drawLine(x + width / 2, y + height / 2, x - width / 2, y + height /
+        // 2);
+        // Render.drawLine(x - width / 2, y + height / 2, x - width / 2, y - height /
+        // 2);
+        // Render.resetColor();
     }
 
 }

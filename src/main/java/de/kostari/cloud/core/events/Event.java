@@ -27,7 +27,6 @@ public class Event {
      */
     public void join(Object listener, String name) {
         Class<?> c = listener.getClass();
-
         try {
             for (Method method : c.getMethods()) {
                 if (method.getName().equals(name)) {

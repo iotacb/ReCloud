@@ -13,8 +13,6 @@ import java.util.Map;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
-import de.kostari.cloud.core.utils.Colors;
-import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.utils.render.Texture;
 import de.kostari.cloud.core.utils.types.Color4f;
 
@@ -246,7 +244,7 @@ public class Font {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDisable(GL11.GL_LIGHTING);
-        Render.color(color);
+        GL11.glColor4f(color.r, color.g, color.b, color.a);
         GL11.glBegin(GL11.GL_QUADS);
         {
             GL11.glTexCoord2f(s1, t1);
@@ -259,7 +257,7 @@ public class Font {
             GL11.glVertex2f(x, y);
         }
         GL11.glEnd();
-        Render.color(Colors.WHITE);
+        GL11.glColor4f(1, 1, 1, 1);
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);

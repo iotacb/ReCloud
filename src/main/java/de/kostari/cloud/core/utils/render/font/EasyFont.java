@@ -7,7 +7,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.stb.STBEasyFont;
 
 import de.kostari.cloud.core.utils.Colors;
-import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.utils.types.Color4f;
 
 public class EasyFont {
@@ -42,7 +41,7 @@ public class EasyFont {
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glTranslatef(x, y, 0);
-        Render.color(color);
+        GL11.glColor4f(color.r, color.g, color.b, color.a);
         GL11.glScaled(sizeBuffer, sizeBuffer, 1);
         GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
         GL11.glVertexPointer(GL11.GL_POINT_BIT, GL11.GL_FLOAT, GL11.GL_POLYGON_STIPPLE_BIT, buffer);

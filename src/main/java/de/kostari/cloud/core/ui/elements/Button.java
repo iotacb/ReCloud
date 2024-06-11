@@ -3,7 +3,6 @@ package de.kostari.cloud.core.ui.elements;
 import de.kostari.cloud.core.ui.UIElement;
 import de.kostari.cloud.core.ui.listener.IClickListener;
 import de.kostari.cloud.core.utils.Colors;
-import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.utils.types.Color4f;
 import de.kostari.cloud.core.window.Input;
 
@@ -36,11 +35,11 @@ public class Button extends UIElement {
 
     @Override
     public void draw() {
-        Render.color(isHovered() ? hoverButtonColor : buttonColor);
-        Render.drawRectCenter(getX(), getY(), getWidth(), getHeight());
-        Render.drawTextCenter(buttonText, getX(),
-                getY());
-        Render.resetColor();
+        // Render.color(isHovered() ? hoverButtonColor : buttonColor);
+        // Render.drawRectCenter(getX(), getY(), getWidth(), getHeight());
+        // Render.drawTextCenter(buttonText, getX(),
+        // getY());
+        // Render.resetColor();
     }
 
     @Override

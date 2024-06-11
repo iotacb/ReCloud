@@ -1,35 +1,35 @@
 package de.kostari.cloud.core.physics;
 
-import de.kostari.cloud.core.utils.math.Vector2f;
+import de.kostari.cloud.core.utils.math.Vector2;
 
 public class RaycastResult {
 
-    private Vector2f point;
-    private Vector2f normal;
+    private Vector2 point;
+    private Vector2 normal;
 
     private float distance;
 
     private boolean colliding;
 
     public RaycastResult() {
-        this.point = new Vector2f();
-        this.normal = new Vector2f();
+        this.point = new Vector2();
+        this.normal = new Vector2();
         this.distance = 0;
         this.colliding = false;
     }
 
-    public RaycastResult(Vector2f point, Vector2f normal, float distance, boolean hit) {
+    public RaycastResult(Vector2 point, Vector2 normal, float distance, boolean hit) {
         this.point = point;
         this.normal = normal;
         this.distance = distance;
         this.colliding = hit;
     }
 
-    public Vector2f getPoint() {
+    public Vector2 getPoint() {
         return point;
     }
 
-    public Vector2f getNormal() {
+    public Vector2 getNormal() {
         return normal;
     }
 

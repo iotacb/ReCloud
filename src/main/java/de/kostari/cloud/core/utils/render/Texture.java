@@ -7,23 +7,20 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.stb.STBImage;
 
-import de.kostari.cloud.Cloud;
-import de.kostari.cloud.core.utils.Atlas;
-import de.kostari.cloud.core.utils.math.Vector2f;
+import de.kostari.cloud.core.utils.math.Vector2;
 
 import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 
-import static org.lwjgl.opengl.GL11.GL_RGB;
-import static org.lwjgl.opengl.GL11.GL_RGB8;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_RGBA8;
 import static org.lwjgl.opengl.GL11.GL_REPEAT;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+
 import static org.lwjgl.opengl.GL12.GL_TEXTURE_WRAP_R;
 
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
@@ -37,32 +34,21 @@ public class Texture {
 
     private float width;
     private float height;
-
     private int textureId;
-
     private String filePath;
-
     private ByteBuffer imageData;
-
     private int filtering = GL_NEAREST;
 
     public Texture(String filePath) {
         this.filePath = filePath;
-        Atlas.addTexture(this);
+        load();
     }
 
     public Texture() {
         this.textureId = glGenTextures();
+        load();
     }
 
-    /**
-     * Create a texture from a buffer
-     * 
-     * @param width
-     * @param height
-     * @param buffer
-     * @return
-     */
     public static Texture fromBuffer(int width, int height, ByteBuffer buffer) {
         Texture texture = new Texture();
         texture.width = width;
@@ -79,45 +65,31 @@ public class Texture {
         return texture;
     }
 
-    /**
-     * Load the texture
-     * 
-     * @return
-     */
     public Texture load() {
         textureId = glGenTextures();
+        System.out.println(textureId);
         glBindTexture(GL_TEXTURE_2D, textureId);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filtering);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filtering);
 
-        IntBuffer width = BufferUtils.createIntBuffer(1);
-        IntBuffer height = BufferUtils.createIntBuffer(1);
-        IntBuffer channels = BufferUtils.createIntBuffer(1);
+        IntBuffer widthBuffer = BufferUtils.createIntBuffer(1);
+        IntBuffer heightBuffer = BufferUtils.createIntBuffer(1);
+        IntBuffer channelsBuffer = BufferUtils.createIntBuffer(1);
 
-        this.imageData = STBImage.stbi_load(filePath, width, height, channels, 0);
+        this.imageData = STBImage.stbi_load(filePath, widthBuffer, heightBuffer, channelsBuffer, 4);
 
         if (imageData == null) {
-            // THROW ERROR
+            throw new RuntimeException("Failed to load texture file: " + filePath);
         }
 
-        this.width = width.get(0);
-        this.height = height.get(0);
+        this.width = widthBuffer.get(0);
+        this.height = heightBuffer.get(0);
 
-        if (channels.get(0) == 3) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width.get(0), height.get(0), 0, GL_RGB, GL_UNSIGNED_BYTE,
-                    imageData);
-        } else if (channels.get(0) == 4) {
-            Cloud.print("4 channels");
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width.get(0), height.get(0), 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                    imageData);
-        } else {
-            // THROW ERROR
-        }
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (int) width, (int) height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
 
         STBImage.stbi_image_free(imageData);
         return this;
@@ -131,8 +103,8 @@ public class Texture {
         return height;
     }
 
-    public Vector2f getSize() {
-        return new Vector2f(width, height);
+    public Vector2 getSize() {
+        return new Vector2(width, height);
     }
 
     public String getFilePath() {
@@ -151,4 +123,7 @@ public class Texture {
         this.filtering = filtering;
     }
 
+    public void bind() {
+        glBindTexture(GL_TEXTURE_2D, textureId);
+    }
 }

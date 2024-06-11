@@ -1,13 +1,13 @@
 package de.kostari.cloud.core.physics.colliders;
 
-import de.kostari.cloud.core.utils.math.Vector2f;
+import de.kostari.cloud.core.utils.math.Vector2;
 
 public class CircleCollider extends ColliderScaffold {
 
     private float radius;
     private float radiusSquared;
 
-    public CircleCollider(Vector2f relativeCenter, float radius) {
+    public CircleCollider(Vector2 relativeCenter, float radius) {
         super(ColliderTypes.CIRCLE);
         this.relativeCentroid = relativeCenter;
         this.radius = radius;
@@ -16,8 +16,8 @@ public class CircleCollider extends ColliderScaffold {
     }
 
     @Override
-    public Vector2f support(Vector2f vector) {
-        Vector2f normalized = vector.normalize();
+    public Vector2 support(Vector2 vector) {
+        Vector2 normalized = vector.normalize();
         return absoluteCentroid.add(normalized);
     }
 

@@ -16,9 +16,8 @@ import org.lwjgl.system.Platform;
 
 import de.kostari.cloud.Cloud;
 import de.kostari.cloud.core.scene.SceneManager;
-import de.kostari.cloud.core.utils.Atlas;
-import de.kostari.cloud.core.utils.math.Vector2f;
-import de.kostari.cloud.core.utils.render.Render2;
+import de.kostari.cloud.core.utils.math.Vector2;
+import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.utils.types.Color4f;
 
 public class Window {
@@ -40,6 +39,8 @@ public class Window {
     private boolean fullscreen = false;
     private boolean centerOnStart = true;
     private boolean vsync = true;
+
+    private boolean initialized = false;
 
     private float fpsCounter = 0;
     private float fps = 0;
@@ -83,8 +84,8 @@ public class Window {
         });
 
         GLFW.glfwSetScrollCallback(windowId, (id, scrollX, scrollY) -> {
-            Input.scrollX = (float) scrollX;
-            Input.scrollY = (float) scrollY;
+            Input.scrollX = (int) scrollX;
+            Input.scrollY = (int) scrollY;
             WindowEvents.onMouseScroll.call((float) scrollX, (float) scrollY);
         });
 
@@ -94,8 +95,8 @@ public class Window {
         });
 
         GLFW.glfwSetCursorPosCallback(windowId, (id, x, y) -> {
-            Input.mouseX = (float) x;
-            Input.mouseY = (float) y;
+            Input.mouseX = (int) x;
+            Input.mouseY = (int) y;
             WindowEvents.onMouseMove.call((int) x, (int) y);
         });
 
@@ -141,6 +142,10 @@ public class Window {
     }
 
     private void setupGLFW() {
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL11.GL_TRUE);
         GLFW.glfwMakeContextCurrent(windowId);
         GLFW.glfwSwapInterval(vsync ? 1 : 0);
         GLFW.glfwShowWindow(windowId);
@@ -174,7 +179,7 @@ public class Window {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        Render2.init();
+        Render.init(windowWidth, windowHeight);
     }
 
     private void initialize() {
@@ -197,11 +202,14 @@ public class Window {
         System.out.println("Setting up drawing");
         setupDrawing();
         System.out.println("Loading Atlas files");
-        Atlas.loadAtlas();
+
+        this.initialized = true;
+        if (!SceneManager.current().isInitialized)
+            SceneManager.current().init();
     }
 
     private void destroy() {
-        Render2.cleanup();
+        Render.cleanup();
         Callbacks.glfwFreeCallbacks(windowId);
         GLFW.glfwDestroyWindow(windowId);
         GLFW.glfwSetErrorCallback(null).free();
@@ -260,11 +268,20 @@ public class Window {
         return windowHeight;
     }
 
-    public Vector2f getWindowSize() {
-        return new Vector2f(windowWidth, windowHeight);
+    public Vector2 getWindowSize() {
+        return new Vector2(windowWidth, windowHeight);
     }
 
-    public float getFps() {
+    public float getFPS() {
         return fps;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public void setWindowTitle(String windowTitle) {
+        this.windowTitle = windowTitle;
+        GLFW.glfwSetWindowTitle(windowId, windowTitle);
     }
 }

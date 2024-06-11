@@ -26,9 +26,7 @@ public class Shader {
     }
 
     public void attachShaderFromFile(int type, String filePath) {
-        // try {
         int shaderId = GL20.glCreateShader(type);
-        // String shaderCode = FileUtils.loadAsString(filePath);
         String shaderCode = readShaderFile(filePath);
         GL20.glShaderSource(shaderId, shaderCode);
         GL20.glCompileShader(shaderId);
@@ -36,9 +34,21 @@ public class Shader {
             throw new RuntimeException("Error compiling shader: " + GL20.glGetShaderInfoLog(shaderId));
         }
         GL20.glAttachShader(programId, shaderId);
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
+    }
+
+    public void attachShaderFromExternalFile(int type, String filePath) {
+        try {
+            int shaderId = GL20.glCreateShader(type);
+            String shaderCode = FileUtils.loadAsString(filePath);
+            GL20.glShaderSource(shaderId, shaderCode);
+            GL20.glCompileShader(shaderId);
+            if (GL20.glGetShaderi(shaderId, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
+                throw new RuntimeException("Error compiling shader: " + GL20.glGetShaderInfoLog(shaderId));
+            }
+            GL20.glAttachShader(programId, shaderId);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void link() {

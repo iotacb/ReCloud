@@ -60,13 +60,13 @@ public class Render {
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboId);
 
         nonTexturedShader = new Shader();
-        nonTexturedShader.attachShaderFromFile(GL20.GL_VERTEX_SHADER, "./shader/vertex.glsl");
-        nonTexturedShader.attachShaderFromFile(GL20.GL_FRAGMENT_SHADER, "./shader/fragment.glsl");
+        nonTexturedShader.attachShaderFromFile(GL20.GL_VERTEX_SHADER, "../../shader/vertex.glsl");
+        nonTexturedShader.attachShaderFromFile(GL20.GL_FRAGMENT_SHADER, "../../shader/fragment.glsl");
         nonTexturedShader.link();
 
         texturedShader = new Shader();
-        texturedShader.attachShaderFromFile(GL20.GL_VERTEX_SHADER, "./shader/tex_vertex.glsl");
-        texturedShader.attachShaderFromFile(GL20.GL_FRAGMENT_SHADER, "./shader/tex_fragment.glsl");
+        texturedShader.attachShaderFromFile(GL20.GL_VERTEX_SHADER, "../../shader/tex_vertex.glsl");
+        texturedShader.attachShaderFromFile(GL20.GL_FRAGMENT_SHADER, "../../shader/tex_fragment.glsl");
         texturedShader.link();
 
         float[] projectionMatrix = new float[16];

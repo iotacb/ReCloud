@@ -18,13 +18,13 @@ public class Ball {
 
     private Color4f color;
 
-    private int textureId;
+    // private int textureId;
 
-    public Ball(int textureID) {
+    public Ball() {
         this.velocityX = MathUtil.random(-1, 1);
         this.velocityY = MathUtil.random(-1, 1);
 
-        this.textureId = textureID;
+        // this.textureId = textureID;
 
         this.size = 20;
         this.x = (int) MathUtil.random(size / 2, Window.instance.getWindowWidth() - size / 2);
@@ -34,8 +34,8 @@ public class Ball {
     }
 
     public void draw() {
-        // Render.drawRect((int) x, (int) y, size, size, true, color);
-        Render.drawTexture((int) x, (int) y, size, size, true, textureId);
+        Render.drawRect((int) x, (int) y, size, size, true, color);
+        // Render.drawTexture((int) x, (int) y, size, size, true, textureId);
     }
 
     public void update() {

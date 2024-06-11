@@ -13,13 +13,13 @@ import de.kostari.cloud.core.window.WindowEvents;
 
 public class DemoScene extends Scene {
 
-    private Texture texture;
+    // private Texture texture;
 
     private List<Ball> balls = new ArrayList<>();
 
     @Override
     public void init() {
-        this.texture = new Texture("img.png");
+        // this.texture = new Texture("img.png");
         spawn();
 
         WindowEvents.onMouseScroll.join(this, "scroll");
@@ -27,8 +27,9 @@ public class DemoScene extends Scene {
     }
 
     private void spawn() {
-        for (int i = 0; i < 200000; i++) {
-            balls.add(new Ball(texture.getTextureId()));
+        for (int i = 0; i < 10; i++) {
+            // balls.add(new Ball(texture.getTextureId()));
+            balls.add(new Ball());
         }
     }
 

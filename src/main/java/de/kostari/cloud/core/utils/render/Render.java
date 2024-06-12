@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryUtil;
 
+import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.utils.types.Color4f;
 
 import java.nio.FloatBuffer;
@@ -49,6 +50,8 @@ public class Render {
         nonTexturedShapes = new ArrayList<>();
         texturedShapes = new ArrayList<>();
 
+        SceneManager.current().initCamera();
+
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboId);
         GL20.glVertexAttribPointer(0, 2, GL11.GL_FLOAT, false, VERTEX_SIZE * Float.BYTES, 0);
         GL20.glEnableVertexAttribArray(0);
@@ -69,44 +72,19 @@ public class Render {
         texturedShader.attachShaderFromFile(GL20.GL_FRAGMENT_SHADER, "../../shader/tex_fragment.glsl");
         texturedShader.link();
 
-        float[] projectionMatrix = new float[16];
-        setOrtho2D(projectionMatrix, 0, windowWidth, windowHeight, 0);
-
         nonTexturedShader.bind();
-        nonTexturedShader.createUniform("projection");
-        nonTexturedShader.setUniform("projection", projectionMatrix);
+        nonTexturedShader.createUniform("combinedMatrix");
+        nonTexturedShader.setUniform("combinedMatrix", SceneManager.current().getCamera().getCombinedMatrix());
         nonTexturedShader.unbind();
 
         texturedShader.bind();
-        texturedShader.createUniform("projection");
+        texturedShader.createUniform("combinedMatrix");
         texturedShader.createUniform("textureSampler");
-        texturedShader.setUniform("projection", projectionMatrix);
+        texturedShader.setUniform("combinedMatrix", SceneManager.current().getCamera().getCombinedMatrix());
         texturedShader.setUniform("textureSampler", 0);
         texturedShader.unbind();
 
         initialized = true;
-    }
-
-    private static void setOrtho2D(float[] matrix, float left, float right, float bottom, float top) {
-        matrix[0] = 2.0f / (right - left);
-        matrix[1] = 0.0f;
-        matrix[2] = 0.0f;
-        matrix[3] = 0.0f;
-
-        matrix[4] = 0.0f;
-        matrix[5] = 2.0f / (top - bottom);
-        matrix[6] = 0.0f;
-        matrix[7] = 0.0f;
-
-        matrix[8] = 0.0f;
-        matrix[9] = 0.0f;
-        matrix[10] = -1.0f;
-        matrix[11] = 0.0f;
-
-        matrix[12] = -(right + left) / (right - left);
-        matrix[13] = -(top + bottom) / (top - bottom);
-        matrix[14] = 0.0f;
-        matrix[15] = 1.0f;
     }
 
     public static void cleanup() {
@@ -132,7 +110,7 @@ public class Render {
         initialized = false;
     }
 
-    public static void beginBatch() {
+    private static void beginBatch() {
         nonTexturedShapes.clear();
         texturedShapes.clear();
     }
@@ -192,7 +170,6 @@ public class Render {
                     indexBuffer.clear();
                     vertexIndex = 0;
                 }
-                // System.out.println(shape.textureID);
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, shape.textureID); // Bind the texture
                 lastTextureID = shape.textureID;
             }
@@ -241,6 +218,14 @@ public class Render {
     }
 
     public static void flush() {
+        nonTexturedShader.bind();
+        nonTexturedShader.setUniform("combinedMatrix", SceneManager.current().getCamera().getCombinedMatrix());
+        nonTexturedShader.unbind();
+
+        texturedShader.bind();
+        texturedShader.setUniform("combinedMatrix", SceneManager.current().getCamera().getCombinedMatrix());
+        texturedShader.unbind();
+
         drawNonTexturedShapes();
         drawTexturedShapes();
         beginBatch();
@@ -271,6 +256,10 @@ public class Render {
         };
         shape.indices = new int[] { 0, 1, 2, 2, 3, 0 };
         addShape(shape);
+    }
+
+    public static void drawRect(float x, float y, float width, float height, boolean centered, Color4f color) {
+        drawRect((int) x, (int) y, (int) width, (int) height, centered, color);
     }
 
     public static void drawTexture(int x, int y, int width, int height, boolean centered, int textureID) {

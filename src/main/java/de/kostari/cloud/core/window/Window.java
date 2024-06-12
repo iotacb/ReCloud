@@ -1,5 +1,6 @@
 package de.kostari.cloud.core.window;
 
+import org.joml.Vector2f;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWDropCallback;
@@ -14,6 +15,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.Platform;
 
+import balls_demo.Ball;
 import de.kostari.cloud.Cloud;
 import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.utils.math.Vector2;
@@ -22,7 +24,7 @@ import de.kostari.cloud.core.utils.types.Color4f;
 
 public class Window {
 
-    public static Window instance;
+    private static Window instance;
 
     private String windowTitle;
 
@@ -97,6 +99,9 @@ public class Window {
         GLFW.glfwSetCursorPosCallback(windowId, (id, x, y) -> {
             Input.mouseX = (int) x;
             Input.mouseY = (int) y;
+            Vector2f globalMousePos = SceneManager.current().getCamera().screenToWorld((int) x, (int) y);
+            Input.worldMouseX = (int) globalMousePos.x;
+            Input.worldMouseY = (int) globalMousePos.y;
             WindowEvents.onMouseMove.call((int) x, (int) y);
         });
 
@@ -260,15 +265,19 @@ public class Window {
         this.fullscreen = fullscreen;
     }
 
-    public int getWindowWidth() {
+    public int getWidth() {
         return windowWidth;
     }
 
-    public int getWindowHeight() {
+    public int getHeight() {
         return windowHeight;
     }
 
-    public Vector2 getWindowSize() {
+    public Vector2 getCenter() {
+        return new Vector2(windowWidth / 2, windowHeight / 2);
+    }
+
+    public Vector2 getSize() {
         return new Vector2(windowWidth, windowHeight);
     }
 
@@ -280,8 +289,13 @@ public class Window {
         return initialized;
     }
 
-    public void setWindowTitle(String windowTitle) {
+    public void setTitle(String windowTitle) {
         this.windowTitle = windowTitle;
         GLFW.glfwSetWindowTitle(windowId, windowTitle);
+    }
+
+    public static Window get() {
+        assert instance != null : "Window not created!";
+        return instance;
     }
 }

@@ -15,6 +15,9 @@ public class Input {
     protected static int mouseX;
     protected static int mouseY;
 
+    protected static int worldMouseX;
+    protected static int worldMouseY;
+
     protected static int scrollX;
     protected static int scrollY;
 
@@ -117,6 +120,14 @@ public class Input {
         return mouseY;
     }
 
+    public static int getWorldMouseX() {
+        return worldMouseX;
+    }
+
+    public static int getWorldMouseY() {
+        return worldMouseY;
+    }
+
     /**
      * Returns the current mouse position as a Vector2i
      * 
@@ -124,6 +135,10 @@ public class Input {
      */
     public static Vector2 getMousePosition() {
         return new Vector2(mouseX, mouseY);
+    }
+
+    public static Vector2 getWorldMousePosition() {
+        return new Vector2(worldMouseX, worldMouseY);
     }
 
     /**

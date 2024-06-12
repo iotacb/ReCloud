@@ -53,9 +53,9 @@ public class Audio {
         sourceId = AL10.alGenSources();
 
         AL10.alSourcei(sourceId, AL10.AL_BUFFER, bufferId);
-        AL10.alSource3f(sourceId, AL10.AL_POSITION, Window.instance.getWindowWidth()
+        AL10.alSource3f(sourceId, AL10.AL_POSITION, Window.get().getWidth()
                 / 2,
-                Window.instance.getWindowHeight() / 2,
+                Window.get().getHeight() / 2,
                 0f);
 
         AL10.alSourcef(sourceId, AL10.AL_PITCH, pitch);

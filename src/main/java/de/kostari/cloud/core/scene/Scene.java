@@ -2,6 +2,8 @@ package de.kostari.cloud.core.scene;
 
 import java.util.ArrayList;
 
+import org.lwjgl.opengl.GL11;
+
 import de.kostari.cloud.core.objects.GameObject;
 import de.kostari.cloud.core.utils.render.Render;
 
@@ -17,8 +19,11 @@ public class Scene {
      * Called when the scene is loaded.
      */
     public void init() {
-        this.camera = new Camera(0, 0);
         this.isInitialized = true;
+    }
+
+    public void initCamera() {
+        camera = new Camera();
     }
 
     /**
@@ -35,13 +40,11 @@ public class Scene {
      * Called every frame after update.
      */
     public void draw() {
-        // camera.applyTransforms();
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject gameObject = gameObjects.get(i);
             gameObject.draw();
         }
         Render.flush();
-        // camera.resetTransforms();
     }
 
     /**

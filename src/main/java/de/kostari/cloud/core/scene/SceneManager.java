@@ -19,8 +19,17 @@ public class SceneManager {
             lastScene.dispose();
         }
         currentScene = scene;
-        if (!currentScene.isInitialized && Window.instance.isInitialized())
+        if (!currentScene.isInitialized && Window.get().isInitialized())
             currentScene.init();
+    }
+
+    @SuppressWarnings("deprecation")
+    public static void setScene(Class<? extends Scene> sceneClass) {
+        try {
+            setScene(sceneClass.newInstance());
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

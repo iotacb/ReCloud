@@ -185,4 +185,8 @@ public class Vector2 {
         return String.format("{%s, %s}", x, y);
     }
 
+    public static Vector2 fromRandomDirection() {
+        return new Vector2((float) Math.random() * 2 - 1, (float) Math.random() * 2 - 1).normalize();
+    }
+
 }

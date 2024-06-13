@@ -1,4 +1,4 @@
-package balls_demo;
+package camera_demo;
 
 import de.kostari.cloud.core.objects.GameObject;
 import de.kostari.cloud.core.utils.Colors;

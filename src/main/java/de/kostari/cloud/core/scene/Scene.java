@@ -2,8 +2,6 @@ package de.kostari.cloud.core.scene;
 
 import java.util.ArrayList;
 
-import org.lwjgl.opengl.GL11;
-
 import de.kostari.cloud.core.objects.GameObject;
 import de.kostari.cloud.core.utils.render.Render;
 

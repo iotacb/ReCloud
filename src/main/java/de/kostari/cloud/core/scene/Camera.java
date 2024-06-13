@@ -5,6 +5,7 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.utils.math.Vector2;
 import de.kostari.cloud.core.window.Window;
 
 public class Camera extends GameObject {
@@ -13,6 +14,9 @@ public class Camera extends GameObject {
     private Matrix4f viewMatrix;
     private Matrix4f combinedMatrix;
     private float zoom;
+
+    private float deadZoneX = 0;
+    private float deadZoneY = 0;
 
     public Camera() {
         super();
@@ -37,6 +41,19 @@ public class Camera extends GameObject {
         super.update();
     }
 
+    public void followObject(GameObject object, float lerpingFactor) {
+        Vector2 targetPosition = object.transform.position.clone().sub(Window.get().getCenter());
+        Vector2 currentPosition = transform.position;
+        Vector2 lerped = new Vector2(currentPosition).lerp(targetPosition, lerpingFactor);
+        if (Math.abs(targetPosition.x) > deadZoneX) {
+            lerped.x = targetPosition.x;
+        }
+        if (Math.abs(targetPosition.y) > deadZoneY) {
+            lerped.y = targetPosition.y;
+        }
+        transform.position.set(lerped);
+    }
+
     public void setZoom(float zoom) {
         if (zoom > 0) {
             this.zoom = zoom;
@@ -49,11 +66,9 @@ public class Camera extends GameObject {
     }
 
     public Vector2f screenToWorld(float screenX, float screenY) {
-        // Convert screen coordinates to normalized device coordinates (NDC)
         float ndcX = (2.0f * screenX) / Window.get().getWidth() - 1.0f;
         float ndcY = 1.0f - (2.0f * screenY) / Window.get().getHeight();
 
-        // Convert NDC to world coordinates
         Vector4f ndcPos = new Vector4f(ndcX, ndcY, 0, 1);
         Matrix4f inverse = new Matrix4f(combinedMatrix).invert();
         ndcPos.mul(inverse);

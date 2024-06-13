@@ -1,4 +1,6 @@
-package balls_demo;
+package camera_demo;
+
+import org.joml.Vector2f;
 
 import de.kostari.cloud.core.scene.Scene;
 import de.kostari.cloud.core.utils.Colors;
@@ -12,11 +14,15 @@ public class BallsScene extends Scene {
     private static final int BALLS = 2000;
     private static final int BOUNDS_THICKNESS = 4;
 
+    private Cursor cursor;
+
     @Override
     public void init() {
         for (int i = 0; i < BALLS; i++) {
             new Ball();
         }
+
+        this.cursor = new Cursor();
 
         WindowEvents.onMouseScroll.join(this, "zoomCam");
         super.init();
@@ -32,7 +38,49 @@ public class BallsScene extends Scene {
         if (Input.mouseButtonDown(0)) {
             new Ball().transform.position = Input.getWorldMousePosition();
         }
+
+        if (Input.mouseButtonPressed(2)) {
+            lastMouseX = Input.getMousePosition().x;
+            lastMouseY = Input.getMousePosition().y;
+        }
+
+        if (Input.mouseButtonDown(2)) {
+            float currentMouseX = Input.getMousePosition().x;
+            float currentMouseY = Input.getMousePosition().y;
+
+            float deltaX = currentMouseX - lastMouseX;
+            float deltaY = currentMouseY - lastMouseY;
+
+            getCamera().transform.position.x -= deltaX;
+            getCamera().transform.position.y -= deltaY;
+
+            lastMouseX = currentMouseX;
+            lastMouseY = currentMouseY;
+        }
+
+        // getCamera().followObject(cursor, .1f);
+
         super.update();
+    }
+
+    public void zoomCam(float x, float y) {
+        // Convert mouse position to world coordinates before zoom
+        Vector2f worldPosBeforeZoom = getCamera().screenToWorld(Input.getMouseX(), Input.getMouseY());
+
+        // Apply the zoom
+        float newZoom = getCamera().getZoom() * (y < 0 ? .95f : 1.05f);
+        getCamera().setZoom(newZoom);
+
+        // Convert mouse position to world coordinates after zoom
+        Vector2f worldPosAfterZoom = getCamera().screenToWorld(Input.getMouseX(), Input.getMouseY());
+
+        // Calculate the difference and move the camera accordingly
+        Vector2f offset = new Vector2f(
+                worldPosBeforeZoom.x - worldPosAfterZoom.x,
+                worldPosBeforeZoom.y - worldPosAfterZoom.y);
+
+        getCamera().transform.position.x += offset.x;
+        getCamera().transform.position.y += offset.y;
     }
 
     @Override

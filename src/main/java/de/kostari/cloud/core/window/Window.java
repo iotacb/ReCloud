@@ -15,7 +15,6 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.Platform;
 
-import balls_demo.Ball;
 import de.kostari.cloud.Cloud;
 import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.utils.math.Vector2;

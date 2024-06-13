@@ -28,7 +28,7 @@ public class Controllings {
             GameObject object) {
         float x = Input.keyState(keyRight) - Input.keyState(keyLeft);
         float y = Input.keyState(keyDown) - Input.keyState(keyUp);
-        Vector2 movement = new Vector2(x, y).normalize().mul(speed * Time.delta);
+        Vector2 movement = new Vector2(x, y).normalize().multiply(speed * Time.delta);
         object.transform.position.x += movement.x;
         object.transform.position.y += movement.y;
     }
@@ -84,7 +84,7 @@ public class Controllings {
         Vector2 objectPositon = object.transform.position;
         Vector2 targetPosition = new Vector2(x, y);
         Vector2 direction = targetPosition.sub(objectPositon).normalize();
-        Vector2 movement = direction.mul(speed * Time.delta);
+        Vector2 movement = direction.multiply(speed * Time.delta);
         if (objectPositon.distance(targetPosition) > gap) {
             object.transform.position.x += movement.x;
             object.transform.position.y += movement.y;
@@ -132,7 +132,7 @@ public class Controllings {
         Vector2 objectPositon = object.transform.position;
         Vector2 targetPosition = new Vector2(x, y);
         Vector2 direction = targetPosition.sub(objectPositon).normalize();
-        Vector2 movement = direction.mul(speed * Time.delta);
+        Vector2 movement = direction.multiply(speed * Time.delta);
         if (objectPositon.distance(targetPosition) > gap) {
             object.transform.position.x -= movement.x;
             object.transform.position.y -= movement.y;

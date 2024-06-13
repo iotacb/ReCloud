@@ -25,16 +25,18 @@ public class Event {
      * @param listener The class instance to call the method on
      * @param name     The name of the method
      */
-    public void join(Object listener, String name) {
+    public void join(Object listener, EventInfo info) {
         Class<?> c = listener.getClass();
         try {
             for (Method method : c.getMethods()) {
-                if (method.getName().equals(name)) {
-                    EventListener e = new EventListener(listener, method);
+                if (method.getName().equals(info.getMethodName())) {
+                    info.setMethod(method);
+                    EventListener e = new EventListener(listener, info);
                     if (!listeners.contains(e)) {
                         listeners.add(e);
                     } else {
-                        throw new RuntimeException("Method " + name + " already added to event " + this);
+                        throw new RuntimeException(
+                                "Method " + info.getMethodName() + " already added to event " + this);
                     }
                 }
             }
@@ -49,6 +51,10 @@ public class Event {
      * @param name The name of the method
      */
     public void leave(String name) {
-        listeners.removeIf(eventListener -> eventListener.getMethod().getName().equals(name));
+        listeners.removeIf(eventListener -> eventListener.getInfo().getMethodName().equals(name));
+    }
+
+    public static EventInfo createEventInfo(Object... args) {
+        return new EventInfo(Thread.currentThread().getStackTrace()[2].getMethodName(), args);
     }
 }

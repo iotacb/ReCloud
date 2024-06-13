@@ -6,6 +6,7 @@ import org.joml.Vector4f;
 
 import de.kostari.cloud.core.objects.GameObject;
 import de.kostari.cloud.core.utils.math.Vector2;
+import de.kostari.cloud.core.window.Input;
 import de.kostari.cloud.core.window.Window;
 
 public class Camera extends GameObject {
@@ -15,6 +16,10 @@ public class Camera extends GameObject {
     private Matrix4f combinedMatrix;
     private float zoom;
 
+    private int lastMouseX;
+    private int lastMouseY;
+    private boolean dragging;
+
     public Camera() {
         super();
 
@@ -22,6 +27,7 @@ public class Camera extends GameObject {
         this.viewMatrix = new Matrix4f();
         this.combinedMatrix = new Matrix4f();
         this.zoom = 1.0f;
+        // WindowEvents.onMouseScroll.join(this, "handleScrollZoom");
         updateViewMatrix();
     }
 
@@ -44,12 +50,6 @@ public class Camera extends GameObject {
         Vector2 targetPosition = object.transform.position.clone().sub(Window.get().getCenter());
         Vector2 currentPosition = transform.position;
         Vector2 lerped = new Vector2(currentPosition).lerp(targetPosition, lerpingFactor);
-        // if (Math.abs(targetPosition.x) > deadZoneX) {
-        // lerped.x = targetPosition.x;
-        // }
-        // if (Math.abs(targetPosition.y) > deadZoneY) {
-        // lerped.y = targetPosition.y;
-        // }
         transform.position.set(lerped);
     }
 
@@ -79,6 +79,37 @@ public class Camera extends GameObject {
         transform.position.y += offset.y;
     }
 
+    public void drag(int dragButton) {
+        if (Input.mouseButtonPressed(dragButton)) {
+            lastMouseX = (int) Input.getMousePosition().x;
+            lastMouseY = (int) Input.getMousePosition().y;
+            dragging = true;
+        }
+
+        if (Input.mouseButtonDown(dragButton)) {
+            int currentMouseX = (int) Input.getMousePosition().x;
+            int currentMouseY = (int) Input.getMousePosition().y;
+
+            float deltaX = currentMouseX - lastMouseX;
+            float deltaY = currentMouseY - lastMouseY;
+
+            transform.position.x -= deltaX;
+            transform.position.y -= deltaY;
+
+            lastMouseX = currentMouseX;
+            lastMouseY = currentMouseY;
+        }
+
+        if (Input.mouseButtonReleased(dragButton)) {
+            dragging = false;
+        }
+    }
+
+    public void handleScrolling(float zoomStrength) {
+        if (!dragging)
+            zoomTo(Input.getMousePosition(), zoom + Input.getScrollY() * zoomStrength);
+    }
+
     public void zoomTo(Vector2 position, float zoom) {
         zoomTo(position.x, position.y, zoom);
     }
@@ -106,6 +137,10 @@ public class Camera extends GameObject {
 
     public Matrix4f getCombinedMatrix() {
         return combinedMatrix;
+    }
+
+    public boolean isDragging() {
+        return dragging;
     }
 
 }

@@ -107,4 +107,8 @@ public class Colors {
         return new Color4f(color.r, color.g, color.b, alpha);
     }
 
+    public static Color4f alpha255(Color4f color, float alpha) {
+        return new Color4f(color.r, color.g, color.b, alpha / 255.0f);
+    }
+
 }

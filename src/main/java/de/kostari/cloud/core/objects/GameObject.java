@@ -23,7 +23,9 @@ public class GameObject {
      */
     public transient Transform transform;
 
-    public GameObject() {
+    public boolean canBeDestroyed = false;
+
+    public GameObject(boolean addToGameObjectsList) {
         OBJECT_ID++;
         this.components = new ArrayList<>();
         this.children = new ArrayList<>();
@@ -32,9 +34,13 @@ public class GameObject {
         /**
          * When a GameObject is instantiated it will be added to the current scene
          */
-        if (SceneManager.hasScene()) {
+        if (SceneManager.hasScene() && addToGameObjectsList) {
             SceneManager.current().addGameObjects(this);
         }
+    }
+
+    public GameObject() {
+        this(true);
     }
 
     /**
@@ -65,6 +71,7 @@ public class GameObject {
      * Called when the game object is removed from the scene.
      */
     public void dispose() {
+        this.canBeDestroyed = true;
     }
 
     /**
@@ -173,6 +180,13 @@ public class GameObject {
      */
     public void setParent(GameObject parent) {
         parent.addChild(this);
+    }
+
+    /**
+     * Destroys the gameobject.
+     */
+    public void destroy() {
+        dispose();
     }
 
 }

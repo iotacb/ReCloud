@@ -8,6 +8,7 @@ import de.kostari.cloud.core.utils.render.Render;
 public class Scene {
 
     private ArrayList<GameObject> gameObjects = new ArrayList<>();
+    private ArrayList<GameObject> gameObjectsToDestroy = new ArrayList<>();
 
     public boolean isInitialized;
 
@@ -31,6 +32,15 @@ public class Scene {
         for (int i = 0; i < gameObjects.size(); i++) {
             GameObject gameObject = gameObjects.get(i);
             gameObject.update();
+
+            if (gameObject.canBeDestroyed) {
+                gameObjectsToDestroy.add(gameObject);
+            }
+        }
+
+        for (int i = 0; i < gameObjectsToDestroy.size(); i++) {
+            GameObject gameObject = gameObjectsToDestroy.get(i);
+            gameObjects.remove(gameObject);
         }
     }
 
@@ -84,5 +94,4 @@ public class Scene {
     public Camera getCamera() {
         return camera;
     }
-
 }

@@ -86,4 +86,12 @@ public class MathUtil {
         return (float) (Math.random() * (j - i) + i);
     }
 
+    public static float random(float i) {
+        return (float) (Math.random() * i);
+    }
+
+    public static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
 }

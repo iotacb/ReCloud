@@ -1,5 +1,6 @@
 package camera_demo;
 
+import de.kostari.cloud.core.events.EventInfo;
 import de.kostari.cloud.core.scene.Scene;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.render.Render;
@@ -24,7 +25,7 @@ public class BallsScene extends Scene {
 
         this.cursor = new Player();
 
-        WindowEvents.onMouseScroll.join(this, "zoomCam");
+        WindowEvents.onMouseScroll.join(this, new EventInfo("zoomCam"));
         super.init();
     }
 

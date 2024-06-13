@@ -14,8 +14,12 @@ public class MyScene extends Scene {
 
     @Override
     public void draw() {
-        Render.drawRect(Window.get().getWidth() / 2, Window.get().getHeight() / 2, 200, 200, true,
+        Render.drawRect(20, 40,
+                200, 200, false,
                 Colors.BLUE);
+        Render.drawRect(20, 10,
+                200, 31, false,
+                Colors.RED);
         super.draw();
     }
 

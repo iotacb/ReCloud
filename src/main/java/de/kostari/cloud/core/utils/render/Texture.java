@@ -41,12 +41,10 @@ public class Texture {
 
     public Texture(String filePath) {
         this.filePath = filePath;
-        load();
     }
 
     public Texture() {
         this.textureId = glGenTextures();
-        load();
     }
 
     public static Texture fromBuffer(int width, int height, ByteBuffer buffer) {

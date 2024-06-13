@@ -8,18 +8,17 @@ public class Time {
      * The time between the last frame and the current frame.
      */
     public static float delta;
+    public static float timePassed;
 
-    /**
-     * The time since the game started.
-     */
-    public static float time;
+    protected static float time;
 
     protected static float lastTime;
 
     protected static void updateDelta() {
+        timePassed += delta;
+        time += delta;
         float currentTime = (float) GLFW.glfwGetTime();
         delta = currentTime - lastTime;
-        time += delta;
         lastTime = currentTime;
     }
 

@@ -22,6 +22,8 @@ public class Input {
     protected static int scrollY;
 
     protected static void listenKeys(long window, int key, int scancode, int action, int mods) {
+        if (key == -1)
+            return;
         if (action == GLFW.GLFW_PRESS) {
             keyPressed[key] = true;
         } else if (action == GLFW.GLFW_RELEASE) {
@@ -30,6 +32,8 @@ public class Input {
     }
 
     protected static void listenMouseButtons(long window, int button, int action, int mods) {
+        if (button == -1)
+            return;
         if (action == GLFW.GLFW_PRESS) {
             mouseButtonsPressed[button] = true;
         } else if (action == GLFW.GLFW_RELEASE) {
@@ -38,6 +42,8 @@ public class Input {
     }
 
     protected static void update() {
+        scrollX = 0;
+        scrollY = 0;
         for (int i = 32; i < GLFW.GLFW_KEY_LAST; i++) {
             keyPressedLast[i] = keyPressed[i];
         }

@@ -31,6 +31,9 @@ public class Window {
     private int windowWidth;
     private int windowHeight;
 
+    private int windowPosX;
+    private int windowPosY;
+
     private long windowId;
     private long mainMonitorId;
 
@@ -124,6 +127,9 @@ public class Window {
         mainMonitorId = GLFW.glfwGetPrimaryMonitor();
         GLFWVidMode videoMode = GLFW.glfwGetVideoMode(mainMonitorId);
 
+        this.windowPosX = 20;
+        this.windowPosY = 60;
+
         if (fullscreen) {
             this.windowWidth = videoMode.width();
             this.windowHeight = videoMode.height();
@@ -138,8 +144,10 @@ public class Window {
         if (centerOnStart) {
             int centerX = (videoMode.width() - windowWidth) / 2;
             int centerY = (videoMode.height() - windowHeight) / 2;
-            GLFW.glfwSetWindowPos(windowId, centerX, centerY);
+            this.windowPosX = centerX;
+            this.windowPosY = centerY;
         }
+        GLFW.glfwSetWindowPos(windowId, windowPosX, windowPosY);
 
     }
 
@@ -268,6 +276,23 @@ public class Window {
 
     public void setFullscreen(boolean fullscreen) {
         this.fullscreen = fullscreen;
+    }
+
+    public void setCenterOnStart(boolean centerOnStart) {
+        this.centerOnStart = centerOnStart;
+    }
+
+    public void setWindowPosX(int windowPosX) {
+        this.windowPosX = windowPosX;
+    }
+
+    public void setWindowPosY(int windowPosY) {
+        this.windowPosY = windowPosY;
+    }
+
+    public void setWindowPos(int x, int y) {
+        this.windowPosX = x;
+        this.windowPosY = y;
     }
 
     public int getWidth() {

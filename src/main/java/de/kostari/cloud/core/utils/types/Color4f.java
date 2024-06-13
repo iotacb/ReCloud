@@ -8,10 +8,10 @@ public class Color4f {
     public float a;
 
     public Color4f(float r, float g, float b, float a) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
+        this.r = Math.clamp(r, 0, 1);
+        this.g = Math.clamp(g, 0, 1);
+        this.b = Math.clamp(b, 0, 1);
+        this.a = Math.clamp(a, 0, 1);
     }
 
     public Color4f(Color4f color) {

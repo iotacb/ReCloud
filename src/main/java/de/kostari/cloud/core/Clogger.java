@@ -6,7 +6,7 @@ public class Clogger {
      * Determines whether the logger should print the line number and class name of
      * the caller.
      */
-    public static boolean DEBUG = false;
+    public static boolean DEBUG = true;
 
     /**
      * Prints a log message to the console

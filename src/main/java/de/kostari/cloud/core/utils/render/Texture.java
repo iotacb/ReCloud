@@ -67,7 +67,6 @@ public class Texture {
 
     public Texture load() {
         textureId = glGenTextures();
-        System.out.println(textureId);
         glBindTexture(GL_TEXTURE_2D, textureId);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);

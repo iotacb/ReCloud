@@ -16,6 +16,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.Platform;
 
 import de.kostari.cloud.Cloud;
+import de.kostari.cloud.core.Clogger;
 import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.utils.math.Vector2;
 import de.kostari.cloud.core.utils.render.Render;
@@ -98,9 +99,6 @@ public class Window {
         GLFW.glfwSetCursorPosCallback(windowId, (id, x, y) -> {
             Input.mouseX = (int) x;
             Input.mouseY = (int) y;
-            Vector2f globalMousePos = SceneManager.current().getCamera().screenToWorld((int) x, (int) y);
-            Input.worldMouseX = (int) globalMousePos.x;
-            Input.worldMouseY = (int) globalMousePos.y;
             WindowEvents.onMouseMove.call((int) x, (int) y);
         });
 
@@ -187,25 +185,25 @@ public class Window {
     }
 
     private void initialize() {
-        System.out.println("Initializing...");
+        Clogger.log("Initializing...");
         GLFWErrorCallback.createPrint(System.err).set();
         if (!GLFW.glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
 
-        System.out.println("Setting hints");
+        Clogger.log("Setting hints");
         setWindowHints();
-        System.out.println("Creating basic window");
+        Clogger.log("Creating basic window");
         createWindow();
-        System.out.println("Setting up callbacks");
+        Clogger.log("Setting up callbacks");
         setupCallbacks();
-        System.out.println("Setting up GLFW");
+        Clogger.log("Setting up GLFW");
         setupGLFW();
-        System.out.println("Setting up ALC");
+        Clogger.log("Setting up ALC");
         setupALC();
-        System.out.println("Setting up drawing");
+        Clogger.log("Setting up drawing");
         setupDrawing();
-        System.out.println("Loading Atlas files");
+        Clogger.log("Loading Atlas files");
 
         this.initialized = true;
         if (!SceneManager.current().isInitialized)
@@ -229,7 +227,15 @@ public class Window {
         }
         Input.update();
         GLFW.glfwPollEvents();
+        updateGlobalMousePosition();
         SceneManager.current().update();
+    }
+
+    private void updateGlobalMousePosition() {
+        Vector2f globalMousePos = SceneManager.current().getCamera().screenToWorld(Input.mouseX,
+                Input.mouseY);
+        Input.worldMouseX = (int) globalMousePos.x;
+        Input.worldMouseY = (int) globalMousePos.y;
     }
 
     private void drawWindow() {

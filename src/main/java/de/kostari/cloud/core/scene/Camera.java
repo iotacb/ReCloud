@@ -15,9 +15,6 @@ public class Camera extends GameObject {
     private Matrix4f combinedMatrix;
     private float zoom;
 
-    private float deadZoneX = 0;
-    private float deadZoneY = 0;
-
     public Camera() {
         super();
 
@@ -30,7 +27,9 @@ public class Camera extends GameObject {
 
     public void updateViewMatrix() {
         viewMatrix.identity();
-        viewMatrix.translate(-transform.position.x, -transform.position.y, 0);
+        float scaledX = -transform.position.x * zoom;
+        float scaledY = -transform.position.y * zoom;
+        viewMatrix.translate(scaledX, scaledY, 0);
         viewMatrix.scale(zoom, zoom, 1.0f);
         projectionMatrix.mul(viewMatrix, combinedMatrix);
     }
@@ -45,12 +44,12 @@ public class Camera extends GameObject {
         Vector2 targetPosition = object.transform.position.clone().sub(Window.get().getCenter());
         Vector2 currentPosition = transform.position;
         Vector2 lerped = new Vector2(currentPosition).lerp(targetPosition, lerpingFactor);
-        if (Math.abs(targetPosition.x) > deadZoneX) {
-            lerped.x = targetPosition.x;
-        }
-        if (Math.abs(targetPosition.y) > deadZoneY) {
-            lerped.y = targetPosition.y;
-        }
+        // if (Math.abs(targetPosition.x) > deadZoneX) {
+        // lerped.x = targetPosition.x;
+        // }
+        // if (Math.abs(targetPosition.y) > deadZoneY) {
+        // lerped.y = targetPosition.y;
+        // }
         transform.position.set(lerped);
     }
 
@@ -63,6 +62,25 @@ public class Camera extends GameObject {
 
     public void zoom(float factor) {
         setZoom(this.zoom * factor);
+    }
+
+    public void zoomTo(float x, float y, float zoom) {
+        Vector2f worldPosBeforeZoom = screenToWorld(x, y);
+
+        setZoom(zoom);
+
+        Vector2f worldPosAfterZoom = screenToWorld(x, y);
+
+        Vector2f offset = new Vector2f(
+                worldPosBeforeZoom.x - worldPosAfterZoom.x,
+                worldPosBeforeZoom.y - worldPosAfterZoom.y);
+
+        transform.position.x += offset.x;
+        transform.position.y += offset.y;
+    }
+
+    public void zoomTo(Vector2 position, float zoom) {
+        zoomTo(position.x, position.y, zoom);
     }
 
     public Vector2f screenToWorld(float screenX, float screenY) {

@@ -240,19 +240,45 @@ public class Render {
     }
 
     public static void drawRect(int x, int y, int width, int height, boolean centered, Color4f color) {
-        if (centered) {
-            x -= width / 2;
-            y -= height / 2;
-        }
+        drawRotatedRect(x, y, width, height, centered, color, 0);
+    }
+
+    public static void drawRotatedRect(int x, int y, int width, int height, boolean centered, Color4f color,
+            float angleDegrees) {
         if (color == null)
             color = new Color4f(1, 1, 1, 1);
 
+        float[] vertices = calculateRotatedVertices(x, y, width, height, centered, angleDegrees);
+
         Shape shape = new Shape();
         shape.vertices = new float[] {
-                x, y, 0, 0, color.r, color.g, color.b, color.a,
-                x + width, y, 0, 0, color.r, color.g, color.b, color.a,
-                x + width, y + height, 0, 0, color.r, color.g, color.b, color.a,
-                x, y + height, 0, 0, color.r, color.g, color.b, color.a
+                vertices[0], vertices[1], 0, 0, color.r, color.g, color.b, color.a,
+                vertices[2], vertices[3], 0, 0, color.r, color.g, color.b, color.a,
+                vertices[4], vertices[5], 0, 0, color.r, color.g, color.b, color.a,
+                vertices[6], vertices[7], 0, 0, color.r, color.g, color.b, color.a
+        };
+        shape.indices = new int[] { 0, 1, 2, 2, 3, 0 };
+        addShape(shape);
+    }
+
+    public static void drawTexture(int x, int y, int width, int height, boolean centered, int textureID) {
+        drawRotatedTexture(x, y, width, height, centered, textureID, 0);
+    }
+
+    public static void drawRotatedTexture(int x, int y, int width, int height, boolean centered, int textureID,
+            float angleDegrees) {
+        if (textureID == -1)
+            return;
+
+        float[] vertices = calculateRotatedVertices(x, y, width, height, centered, angleDegrees);
+
+        Shape shape = new Shape();
+        shape.textureID = textureID;
+        shape.vertices = new float[] {
+                vertices[0], vertices[1], 0, 0, 1, 1, 1, 1, // bottom-left
+                vertices[2], vertices[3], 1, 0, 1, 1, 1, 1, // bottom-right
+                vertices[4], vertices[5], 1, 1, 1, 1, 1, 1, // top-right
+                vertices[6], vertices[7], 0, 1, 1, 1, 1, 1 // top-left
         };
         shape.indices = new int[] { 0, 1, 2, 2, 3, 0 };
         addShape(shape);
@@ -262,23 +288,57 @@ public class Render {
         drawRect((int) x, (int) y, (int) width, (int) height, centered, color);
     }
 
-    public static void drawTexture(int x, int y, int width, int height, boolean centered, int textureID) {
+    public static void drawRotatedRect(float x, float y, float width, float height, boolean centered, Color4f color,
+            float angle) {
+        drawRotatedRect((int) x, (int) y, (int) width, (int) height, centered, color, angle);
+    }
+
+    public static void drawTexture(float x, float y, float width, float height, boolean centered, int textureID) {
+        drawTexture((int) x, (int) y, (int) width, (int) height, centered, textureID);
+    }
+
+    public static void drawRotatedTexture(float x, float y, float width, float height, boolean centered, int textureID,
+            float angleDegrees) {
+        drawRotatedTexture((int) x, (int) y, (int) width, (int) height, centered, textureID, angleDegrees);
+    }
+
+    private static float[] calculateRotatedVertices(int x, int y, int width, int height, boolean centered,
+            float angleDegrees) {
         if (centered) {
             x -= width / 2;
             y -= height / 2;
         }
-        if (textureID == -1)
-            return;
 
-        Shape shape = new Shape();
-        shape.textureID = textureID;
-        shape.vertices = new float[] {
-                x, y, 0, 0, 1, 1, 1, 1, // Bottom-left corner
-                x + width, y, 1, 0, 1, 1, 1, 1, // Bottom-right corner
-                x + width, y + height, 1, 1, 1, 1, 1, 1, // Top-right corner
-                x, y + height, 0, 1, 1, 1, 1, 1 // Top-left corner
-        };
-        shape.indices = new int[] { 0, 1, 2, 2, 3, 0 };
-        addShape(shape);
+        // Calculate the center of the rectangle
+        float cx = x + width / 2.0f;
+        float cy = y + height / 2.0f;
+
+        // Convert angle from degrees to radians
+        float angleRadians = (float) Math.toRadians(angleDegrees);
+
+        // Calculate the vertices
+        float[] vertices = new float[8];
+        vertices[0] = x;
+        vertices[1] = y; // bottom-left
+        vertices[2] = x + width;
+        vertices[3] = y; // bottom-right
+        vertices[4] = x + width;
+        vertices[5] = y + height; // top-right
+        vertices[6] = x;
+        vertices[7] = y + height; // top-left
+
+        // Apply rotation to each vertex
+        for (int i = 0; i < vertices.length; i += 2) {
+            float dx = vertices[i] - cx;
+            float dy = vertices[i + 1] - cy;
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+            float originalAngle = (float) Math.atan2(dy, dx);
+            float newAngle = originalAngle + angleRadians;
+
+            vertices[i] = cx + distance * (float) Math.cos(newAngle);
+            vertices[i + 1] = cy + distance * (float) Math.sin(newAngle);
+        }
+
+        return vertices;
     }
 }

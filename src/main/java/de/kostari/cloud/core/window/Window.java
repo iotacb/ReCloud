@@ -17,9 +17,12 @@ import org.lwjgl.system.Platform;
 
 import de.kostari.cloud.Cloud;
 import de.kostari.cloud.core.Clogger;
+import de.kostari.cloud.core.scene.Camera;
 import de.kostari.cloud.core.scene.SceneManager;
+import de.kostari.cloud.core.ui.UI;
 import de.kostari.cloud.core.utils.math.Vector2;
 import de.kostari.cloud.core.utils.render.Render;
+import de.kostari.cloud.core.utils.tween.Tweens;
 import de.kostari.cloud.core.utils.types.Color4f;
 
 public class Window {
@@ -81,6 +84,10 @@ public class Window {
         GLFW.glfwSetWindowSizeCallback(windowId, (id, newWidth, newHeight) -> {
             this.windowWidth = newWidth;
             this.windowHeight = newHeight;
+            Render.resize(windowWidth, windowHeight);
+            if (SceneManager.hasScene() && SceneManager.current().getCamera() != null) {
+                SceneManager.current().getCamera().resize(windowWidth, windowHeight);
+            }
             WindowEvents.onWindowResize.call(windowWidth, windowHeight);
         });
 
@@ -180,11 +187,7 @@ public class Window {
     }
 
     private void setupDrawing() {
-        GL11.glOrtho(0, windowWidth, Cloud.ENGINE_UP == -1 ? windowHeight : 0,
-                Cloud.ENGINE_UP == 1 ? windowHeight : 0,
-                1, -1);
-        // GL11.glMatrixMode(GL11.GL_MODELVIEW);
-        // GL11.glLoadIdentity();
+        GL11.glViewport(0, 0, windowWidth, windowHeight);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -236,20 +239,27 @@ public class Window {
         Input.update();
         GLFW.glfwPollEvents();
         updateGlobalMousePosition();
+        UI.beginFrame();
+        Tweens.update();
         SceneManager.current().update();
     }
 
     private void updateGlobalMousePosition() {
-        Vector2f globalMousePos = SceneManager.current().getCamera().screenToWorld(Input.mouseX,
-                Input.mouseY);
+        Camera camera = SceneManager.current().getCamera();
+        if (camera == null) {
+            return;
+        }
+
+        Vector2f globalMousePos = camera.screenToWorld(Input.mouseX, Input.mouseY);
         Input.worldMouseX = (int) globalMousePos.x;
         Input.worldMouseY = (int) globalMousePos.y;
     }
 
     private void drawWindow() {
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-        GL11.glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+        Render.beginFrame(clearColor);
         SceneManager.current().draw();
+        Render.endFrame();
+        UI.flush();
         GLFW.glfwSwapBuffers(windowId);
     }
 

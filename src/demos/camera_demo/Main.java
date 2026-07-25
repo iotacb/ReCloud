@@ -6,7 +6,7 @@ import de.kostari.cloud.core.window.Window;
 public class Main {
 
     public static void main(String[] args) {
-        Window window = Window.create(1280, 720, "Balls demo");
+        Window window = Window.create(1280, 720, "Camera Demo");
         SceneManager.setScene(BallsScene.class);
         window.show();
     }

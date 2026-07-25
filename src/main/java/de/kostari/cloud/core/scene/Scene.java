@@ -3,12 +3,14 @@ package de.kostari.cloud.core.scene;
 import java.util.ArrayList;
 
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.utils.render.Render;
 
 public class Scene {
 
     private ArrayList<GameObject> gameObjects = new ArrayList<>();
     private ArrayList<GameObject> gameObjectsToDestroy = new ArrayList<>();
+    private ArrayList<Canvas> canvases = new ArrayList<>();
 
     public boolean isInitialized;
 
@@ -18,6 +20,9 @@ public class Scene {
      * Called when the scene is loaded.
      */
     public void init() {
+        if (camera == null) {
+            initCamera();
+        }
         this.isInitialized = true;
     }
 
@@ -42,6 +47,11 @@ public class Scene {
             GameObject gameObject = gameObjectsToDestroy.get(i);
             gameObjects.remove(gameObject);
         }
+        gameObjectsToDestroy.clear();
+
+        if (camera != null) {
+            camera.update();
+        }
     }
 
     /**
@@ -59,6 +69,11 @@ public class Scene {
      * Called when the scene is unloaded.
      */
     public void dispose() {
+        ArrayList<Canvas> canvasesToDispose = new ArrayList<>(canvases);
+        for (Canvas canvas : canvasesToDispose) {
+            canvas.dispose();
+        }
+        canvases.clear();
         this.isInitialized = false;
     }
 
@@ -93,5 +108,15 @@ public class Scene {
 
     public Camera getCamera() {
         return camera;
+    }
+
+    public void registerCanvas(Canvas canvas) {
+        if (canvas != null && !canvases.contains(canvas)) {
+            canvases.add(canvas);
+        }
+    }
+
+    public void unregisterCanvas(Canvas canvas) {
+        canvases.remove(canvas);
     }
 }

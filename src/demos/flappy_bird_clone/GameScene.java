@@ -6,6 +6,9 @@ import java.util.List;
 import de.kostari.cloud.core.events.EventInfo;
 import de.kostari.cloud.core.objects.GameObject;
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Canvas;
+import de.kostari.cloud.core.ui.Text;
+import de.kostari.cloud.core.ui.TextAlign;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.audio.Audio;
 import de.kostari.cloud.core.utils.input.Keys;
@@ -43,6 +46,10 @@ public class GameScene extends Scene {
     private Audio scoreSound;
 
     private Font font;
+    private Canvas canvas;
+    private Text titleText;
+    private Text gameOverText;
+    private Text scoreText;
 
     @Override
     public void init() {
@@ -54,6 +61,7 @@ public class GameScene extends Scene {
 
         // bugs at 88 font height
         this.font = new Font("./demo_assets/flappy_bird_clone/title.ttf", 87).load();
+        createUi();
 
         spawnClouds();
 
@@ -61,6 +69,7 @@ public class GameScene extends Scene {
         GameManager.gameStartedEvent.join(this, new EventInfo("spawnPipe"));
         GameManager.restartGameEvent.join(this, new EventInfo("clearPipes"));
 
+        Render.postProcessing().enableBloom(.65f, 10f, 10f);
         super.init();
     }
 
@@ -121,19 +130,57 @@ public class GameScene extends Scene {
         if (!GameManager.gameRunning) {
             if (bird.isDead()) {
                 gameOverBounce = 1 + ((float) (Math.sin(Time.timePassed * 20) + 1) * 0.01f);
-                Render.drawTextShadow(font, "Game Over",
-                        Window.get().getCenter().x - (Render.getTextWidth(font, "Game Over") * gameOverBounce) / 2,
-                        Window.get().getCenter().y - (font.getFontHeight() * gameOverBounce), gameOverBounce, 6f,
-                        Colors.CORAL);
             }
-            Render.drawTextShadow(font, "Flappy Bird",
-                    Window.get().getCenter().x - Render.getTextWidth(font, "Flappy Bird") / 2,
-                    Window.get().getCenter().y / 2, 6, Colors.WHITE);
         }
-        Render.drawTextShadow(font, String.valueOf(GameManager.score), 20, 15,
-                2, Colors.WHITE);
+        updateUi();
+        scoreText.text(String.valueOf(GameManager.score));
 
         super.draw();
+    }
+
+    private void createUi() {
+        canvas = new Canvas();
+
+        titleText = new Text("Flappy Bird");
+        titleText.style()
+                .font(font)
+                .textAlign(TextAlign.CENTER)
+                .css("color: white; shadow-depth: 6px; align-items: center;");
+
+        gameOverText = new Text("Game Over");
+        gameOverText.style()
+                .font(font)
+                .textAlign(TextAlign.CENTER)
+                .css("color: coral; shadow-depth: 6px; align-items: center;");
+
+        scoreText = new Text("0");
+        scoreText.style()
+                .font(font)
+                .css("color: white; shadow-depth: 2px;");
+
+        canvas.append(scoreText, 20, 15, 160, Canvas.AUTO);
+        canvas.append(titleText, 0, Window.get().getCenter().y / 2, Window.get().getWidth(), Canvas.AUTO);
+        canvas.append(gameOverText, 0, Window.get().getCenter().y, Window.get().getWidth(), Canvas.AUTO);
+        updateUi();
+    }
+
+    private void updateUi() {
+        boolean showTitle = !GameManager.gameRunning;
+        boolean showGameOver = showTitle && bird.isDead();
+
+        titleText.visible(showTitle);
+        gameOverText.visible(showGameOver);
+        scoreText.visible(true);
+
+        if (showGameOver) {
+            gameOverText.style().fontScale(gameOverBounce);
+            canvas.setBounds(gameOverText, 0,
+                    Window.get().getCenter().y - (font.getFontHeight() * gameOverBounce),
+                    Window.get().getWidth(), Canvas.AUTO);
+        }
+
+        canvas.setBounds(titleText, 0, Window.get().getCenter().y / 2, Window.get().getWidth(), Canvas.AUTO);
+        canvas.setBounds(scoreText, 20, 15, 160, Canvas.AUTO);
     }
 
     private void updateDayNightCycle() {

@@ -1,12 +1,15 @@
 package camera_demo;
 
-import de.kostari.cloud.core.events.EventInfo;
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Button;
+import de.kostari.cloud.core.ui.Canvas;
+import de.kostari.cloud.core.ui.Flex;
+import de.kostari.cloud.core.ui.FlexDirection;
+import de.kostari.cloud.core.ui.Text;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.window.Input;
 import de.kostari.cloud.core.window.Window;
-import de.kostari.cloud.core.window.WindowEvents;
 
 public class BallsScene extends Scene {
 
@@ -14,8 +17,9 @@ public class BallsScene extends Scene {
     private static final int BOUNDS_THICKNESS = 4;
 
     private Player cursor;
-
-    private boolean dragging;
+    private Canvas canvas;
+    private Flex hud;
+    private Text statsText;
 
     @Override
     public void init() {
@@ -24,54 +28,31 @@ public class BallsScene extends Scene {
         }
 
         this.cursor = new Player();
-
-        WindowEvents.onMouseScroll.join(this, new EventInfo("zoomCam"));
+        canvas = new Canvas();
+        createHud();
+        canvas.append(hud, 16, 16, 300, Canvas.AUTO);
         super.init();
     }
-
-    float lastMouseX = 0;
-    float lastMouseY = 0;
 
     @Override
     public void update() {
         Window.get().setTitle(
-                "Balls demo - " + getGameObjects().size() + " balls" + " - " + Window.get().getFPS() + " fps");
-        if (Input.mouseButtonDown(0)) {
+                "Camera demo - " + getGameObjects().size() + " balls" + " - " + Window.get().getFPS() + " fps");
+        statsText.text("Balls: " + getGameObjects().size()
+                + "\nFPS: " + Math.round(Window.get().getFPS())
+                + "\nZoom: " + String.format("%.2f", getCamera().getZoom()));
+
+        if (Input.mouseButtonDown(0) && !hud.bounds().contains(Input.getMouseX(), Input.getMouseY())) {
             new Ball().transform.position = Input.getWorldMousePosition();
         }
 
-        if (Input.mouseButtonPressed(2)) {
-            lastMouseX = Input.getMousePosition().x;
-            lastMouseY = Input.getMousePosition().y;
-            dragging = true;
-        }
+        getCamera().drag(2);
+        getCamera().handleScrolling(0.1f);
 
-        if (Input.mouseButtonDown(2)) {
-            float currentMouseX = Input.getMousePosition().x;
-            float currentMouseY = Input.getMousePosition().y;
-
-            float deltaX = currentMouseX - lastMouseX;
-            float deltaY = currentMouseY - lastMouseY;
-
-            getCamera().transform.position.x -= deltaX;
-            getCamera().transform.position.y -= deltaY;
-
-            lastMouseX = currentMouseX;
-            lastMouseY = currentMouseY;
-        }
-
-        if (Input.mouseButtonReleased(2)) {
-            dragging = false;
-        }
-
-        if (!dragging)
+        if (!getCamera().isDragging())
             getCamera().followObject(cursor, .05f);
 
         super.update();
-    }
-
-    public void zoomCam(float x, float y) {
-        getCamera().zoomTo(Input.getMousePosition(), getCamera().getZoom() + y * .1f);
     }
 
     @Override
@@ -91,4 +72,36 @@ public class BallsScene extends Scene {
         super.draw();
     }
 
+    private void createHud() {
+        hud = new Flex(FlexDirection.COLUMN);
+        hud.style().css(
+                "padding: 14px; gap: 10px; background: #07111fcc; border: 1px solid #67e8f966; color: white;");
+
+        Text title = new Text("Camera Demo");
+        title.style().css("font-scale: 1.25; color: #67e8f9; shadow-depth: 2px;");
+
+        statsText = new Text("");
+        statsText.style().css("color: #e0f2fe; shadow-depth: 1px;");
+
+        Flex actions = new Flex(FlexDirection.ROW);
+        actions.style().css("gap: 8px;");
+
+        Button burstButton = new Button("Burst 25").onClick(() -> spawnBalls(25));
+        burstButton.style().css("grow: 1;");
+
+        Button centerButton = new Button("Center").onClick(() -> {
+            getCamera().setPosition(0, 0);
+            getCamera().setZoom(1);
+        });
+        centerButton.style().css("grow: 1;");
+
+        actions.add(burstButton, centerButton);
+        hud.add(title, statsText, actions);
+    }
+
+    private void spawnBalls(int count) {
+        for (int i = 0; i < count; i++) {
+            new Ball().transform.position = Input.getWorldMousePosition();
+        }
+    }
 }

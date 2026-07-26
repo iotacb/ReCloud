@@ -2,6 +2,7 @@ package flappy_bird_clone;
 
 import de.kostari.cloud.core.events.EventInfo;
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.physics.PhysicsBody;
 import de.kostari.cloud.core.utils.audio.Audio;
 import de.kostari.cloud.core.utils.input.Keys;
 import de.kostari.cloud.core.utils.math.Lerping;
@@ -14,6 +15,7 @@ import de.kostari.cloud.core.window.Window;
 public class Bird extends GameObject {
 
     public static final int PLAYER_SIZE = 60;
+    static final int COLLISION_LAYER = 1;
     private static final float GRAVITY = 9.81f;
     private static final int JUMP_KEY = Keys.KEY_SPACE;
 
@@ -32,9 +34,15 @@ public class Bird extends GameObject {
     private boolean dead = false;
     private boolean gravity = false;
 
+    private final PhysicsBody collisionBody;
+
     public Bird() {
         super();
         setupBird();
+        this.collisionBody = addComponent(PhysicsBody.kinematic(PLAYER_SIZE, PLAYER_SIZE)
+                .sensor(true)
+                .layer(COLLISION_LAYER)
+                .collisionMask(Pipe.COLLISION_LAYER));
         this.flapSound = new Audio("./demo_assets/flappy_bird_clone/flap.wav").load();
         this.dieSound = new Audio("./demo_assets/flappy_bird_clone/die.wav").load();
         this.birdTexture = new AnimatedTexture(new String[] { "./demo_assets/flappy_bird_clone/yellowbird-upflap.png",
@@ -60,18 +68,6 @@ public class Bird extends GameObject {
         }
         if (transform.position.y < Window.get().getHeight() && gravity) {
             velocity += GRAVITY;
-        }
-        if (transform.position.y > Window.get().getHeight() - GameScene.GROUND_HEIGHT - PLAYER_SIZE / 2) {
-            if (!isDead()) {
-                velocity = -400;
-                this.targetAngle = -180;
-                die();
-                return;
-            }
-            if (dead && velocity > 0) {
-                velocity = 0;
-            }
-            transform.position.y = Window.get().getHeight() - GameScene.GROUND_HEIGHT - PLAYER_SIZE / 2;
         }
         updateJump();
         transform.position.y += velocity * Time.delta;
@@ -114,6 +110,22 @@ public class Bird extends GameObject {
 
     public boolean isDead() {
         return dead;
+    }
+
+    public PhysicsBody collisionBody() {
+        return collisionBody;
+    }
+
+    public void collideWithGround() {
+        transform.position.y = Window.get().getHeight() - GameScene.GROUND_HEIGHT - PLAYER_SIZE / 2f;
+
+        if (!dead) {
+            velocity = -400;
+            targetAngle = -180;
+            die();
+        } else if (velocity > 0) {
+            velocity = 0;
+        }
     }
 
 }

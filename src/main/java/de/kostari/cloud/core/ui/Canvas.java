@@ -120,7 +120,7 @@ public class Canvas extends Panel {
             float availableWidth = Math.max(0, width - slot.x);
             float availableHeight = Math.max(0, height - slot.y);
             float childWidth = resolve(slot.width, availableWidth, child.preferredWidth());
-            float childHeight = resolve(slot.height, availableHeight, child.preferredHeight());
+            float childHeight = resolve(slot.height, availableHeight, child.outerPreferredHeight(childWidth));
 
             child.layout(
                     x + slot.x + margin.left,

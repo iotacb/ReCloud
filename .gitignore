@@ -1,5 +1,6 @@
 /.DS_Store
-/.vscode
+/.vscode/*
+!/.vscode/launch.json
 /.tools
 /target
 /addPathPoint.png

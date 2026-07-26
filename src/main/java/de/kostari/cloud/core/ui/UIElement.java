@@ -106,12 +106,29 @@ public abstract class UIElement {
         return style.clampHeight(height);
     }
 
+    public float preferredHeight(float availableWidth) {
+        if (style.hasHeight()) {
+            return style.height();
+        }
+
+        float width = style.hasWidth() ? style.width() : Math.max(0, availableWidth);
+        width = style.clampWidth(width);
+        float innerWidth = Math.max(0, width - style.horizontalInsets());
+        float height = preferredInnerHeight(innerWidth) + style.verticalInsets();
+        return style.clampHeight(height);
+    }
+
     final float outerPreferredWidth() {
         return preferredWidth() + style.margin().horizontal();
     }
 
     final float outerPreferredHeight() {
         return preferredHeight() + style.margin().vertical();
+    }
+
+    final float outerPreferredHeight(float availableWidth) {
+        float innerAvailableWidth = Math.max(0, availableWidth - style.margin().horizontal());
+        return preferredHeight(innerAvailableWidth) + style.margin().vertical();
     }
 
     final void drawTree() {
@@ -157,6 +174,16 @@ public abstract class UIElement {
         for (UIElement child : children) {
             if (child.isVisible()) {
                 height = Math.max(height, child.outerPreferredHeight());
+            }
+        }
+        return height;
+    }
+
+    protected float preferredInnerHeight(float availableWidth) {
+        float height = 0;
+        for (UIElement child : children) {
+            if (child.isVisible()) {
+                height = Math.max(height, child.outerPreferredHeight(availableWidth));
             }
         }
         return height;

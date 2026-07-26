@@ -43,7 +43,9 @@ public class Flex extends Panel {
 
         for (int i = 0; i < count; i++) {
             UIElement child = visibleChildren.get(i);
-            mainSizes[i] = preferredMain(child, row);
+            float availableCross = Math.max(0, crossSize - crossMargin(child, row));
+            float childCross = crossSizeFor(child, row, availableCross);
+            mainSizes[i] = preferredMain(child, row, childCross);
             usedMain += mainSizes[i] + mainMargin(child, row);
             totalGrow += child.style().flexGrow();
         }
@@ -104,6 +106,26 @@ public class Flex extends Panel {
         return maxPreferred(visibleChildren, false);
     }
 
+    @Override
+    protected float preferredInnerHeight(float availableWidth) {
+        List<UIElement> visibleChildren = visibleChildren();
+        if (direction == FlexDirection.COLUMN) {
+            float height = 0;
+            for (UIElement child : visibleChildren) {
+                height += child.outerPreferredHeight(availableWidth);
+            }
+            height += style().rowGap() * Math.max(0, visibleChildren.size() - 1);
+            return height;
+        }
+
+        float height = 0;
+        for (UIElement child : visibleChildren) {
+            float childWidth = Math.min(child.outerPreferredWidth(), availableWidth);
+            height = Math.max(height, child.outerPreferredHeight(childWidth));
+        }
+        return height;
+    }
+
     private List<UIElement> visibleChildren() {
         List<UIElement> visibleChildren = new ArrayList<>();
         for (UIElement child : children()) {
@@ -131,8 +153,11 @@ public class Flex extends Panel {
         return size;
     }
 
-    private float preferredMain(UIElement child, boolean row) {
-        return row ? child.preferredWidth() : child.preferredHeight();
+    private float preferredMain(UIElement child, boolean row, float childCross) {
+        if (row) {
+            return child.preferredWidth();
+        }
+        return child.preferredHeight(childCross);
     }
 
     private float preferredCross(UIElement child, boolean row) {

@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $ToolsDir = Join-Path $RepoRoot ".tools"
 $DownloadsDir = Join-Path $ToolsDir "downloads"
-$JdkRoot = Join-Path $ToolsDir "jdk-21"
+$JdkRoot = Join-Path $ToolsDir "jdk-25"
 $MavenVersion = "3.9.9"
 $MavenRoot = Join-Path $ToolsDir "apache-maven-$MavenVersion"
 
@@ -55,10 +55,10 @@ function Expand-SingleRootZip($ZipPath, $FinalPath) {
 New-Item -ItemType Directory -Force -Path $ToolsDir | Out-Null
 New-Item -ItemType Directory -Force -Path $DownloadsDir | Out-Null
 
-$JdkZip = Join-Path $DownloadsDir "temurin-jdk-21-windows-x64.zip"
+$JdkZip = Join-Path $DownloadsDir "temurin-jdk-25-windows-x64.zip"
 $MavenZip = Join-Path $DownloadsDir "apache-maven-$MavenVersion-bin.zip"
 
-Download-File "https://api.adoptium.net/v3/binary/latest/21/ga/windows/x64/jdk/hotspot/normal/eclipse" $JdkZip
+Download-File "https://api.adoptium.net/v3/binary/latest/25/ga/windows/x64/jdk/hotspot/normal/eclipse" $JdkZip
 Download-File "https://archive.apache.org/dist/maven/maven-3/$MavenVersion/binaries/apache-maven-$MavenVersion-bin.zip" $MavenZip
 
 Write-Step "Installing local JDK into $JdkRoot"

@@ -5,6 +5,7 @@ import java.util.List;
 
 import de.kostari.cloud.core.events.EventInfo;
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.physics.PhysicsBody;
 import de.kostari.cloud.core.scene.Scene;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Text;
@@ -34,6 +35,7 @@ public class GameScene extends Scene {
     private Texture groundTexture;
 
     private Bird bird;
+    private PhysicsBody groundCollider;
 
     private float gameTime;
     private float scrollBackground;
@@ -58,6 +60,7 @@ public class GameScene extends Scene {
         this.groundTexture = new Texture("./demo_assets/flappy_bird_clone/base.png").load();
         this.scoreSound = new Audio("./demo_assets/flappy_bird_clone/point.wav").load();
         this.bird = new Bird();
+        createGroundCollider();
 
         // bugs at 88 font height
         this.font = new Font("./demo_assets/flappy_bird_clone/title.ttf", 87).load();
@@ -69,7 +72,7 @@ public class GameScene extends Scene {
         GameManager.gameStartedEvent.join(this, new EventInfo("spawnPipe"));
         GameManager.restartGameEvent.join(this, new EventInfo("clearPipes"));
 
-        Render.postProcessing().enableBloom(.65f, 10f, 10f);
+        Render.postProcessing().enableBloom(.65f, 1f, 1f);
         super.init();
     }
 
@@ -78,7 +81,6 @@ public class GameScene extends Scene {
         Window.get().setTitle("Flappy Bird Clone | " + Window.get().getFPS());
         updateDayNightCycle();
         updateScrollingBackground();
-        checkCollisions();
         if (Input.keyPressed(Keys.KEY_F2)) {
             GameManager.debugging = !GameManager.debugging;
         }
@@ -93,6 +95,7 @@ public class GameScene extends Scene {
             getCamera().setZoom(1);
         }
         super.update();
+        checkCollisions();
     }
 
     private float gameOverBounce = 0;
@@ -210,35 +213,46 @@ public class GameScene extends Scene {
         }
     }
 
-    private boolean isInScore = false;
-
     private void checkCollisions() {
+        PhysicsBody birdBody = bird.collisionBody();
+        if (groundCollider.isTouching(birdBody)) {
+            bird.collideWithGround();
+        }
+
         for (GameObject gameObject : getGameObjects()) {
             if (gameObject instanceof Pipe pipe) {
-                if (pipe.collidingWithPipe(bird.transform.position.x,
-                        bird.transform.position.y, Bird.PLAYER_SIZE,
-                        Bird.PLAYER_SIZE) && !bird.isDead()) {
+                if (pipe.collidingWithPipe(birdBody) && !bird.isDead()) {
                     bird.die();
                     break;
                 }
-                if (pipe.collidingWithScore(bird.transform.position.x, bird.transform.position.y, Bird.PLAYER_SIZE,
-                        Bird.PLAYER_SIZE)) {
-                    if (!pipe.pipeScored) {
-                        isInScore = true;
-                        pipe.pipeScored = true;
-                    }
-                } else {
-                    if (isInScore) {
-                        System.out.println("Scored!");
-                        GameManager.score++;
-                        GameManager.pipeSpeedFactor += 0.1f;
-                        GameManager.playerScoreEvent.call();
-                        scoreSound.play(true);
-                        isInScore = false;
-                    }
+
+                if (pipe.collidingWithScore(birdBody)) {
+                    pipe.birdEnteredScore = true;
+                } else if (pipe.birdEnteredScore && !pipe.pipeScored) {
+                    pipe.pipeScored = true;
+                    scorePoint();
                 }
             }
         }
+    }
+
+    private void createGroundCollider() {
+        GameObject ground = new GameObject();
+        ground.transform.position.set(Window.get().getCenter().x, Window.get().getHeight());
+        groundCollider = ground.addComponent(PhysicsBody.fixed(
+                Window.get().getWidth(),
+                GROUND_HEIGHT * 2)
+                .sensor(true)
+                .layer(Pipe.COLLISION_LAYER)
+                .collisionMask(Bird.COLLISION_LAYER));
+    }
+
+    private void scorePoint() {
+        System.out.println("Scored!");
+        GameManager.score++;
+        GameManager.pipeSpeedFactor += 0.1f;
+        GameManager.playerScoreEvent.call();
+        scoreSound.play(true);
     }
 
     public void clearPipes() {

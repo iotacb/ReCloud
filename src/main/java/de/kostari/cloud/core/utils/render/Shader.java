@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,16 +33,20 @@ public class Shader {
         shaderIds = new ArrayList<>();
     }
 
+    /**
+     * Attaches a shader loaded from either the classpath or the filesystem.
+     * Filesystem paths are resolved relative to the application's working
+     * directory.
+     */
     public void attachShaderFromFile(int type, String filePath) {
         attachShaderFromSource(type, readShaderFile(filePath));
     }
 
+    /**
+     * Attaches a shader loaded only from the filesystem.
+     */
     public void attachShaderFromExternalFile(int type, String filePath) {
-        try {
-            attachShaderFromSource(type, FileUtils.loadAsString(filePath));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        attachShaderFromSource(type, readExternalShaderFile(filePath));
     }
 
     public void attachShaderFromSource(int type, String shaderCode) {
@@ -157,17 +163,44 @@ public class Shader {
     }
 
     private String readShaderFile(String filePath) {
+        validateFilePath(filePath);
+
+        InputStream inputStream = getClass().getResourceAsStream(filePath);
+        if (inputStream == null) {
+            return readExternalShaderFile(filePath);
+        }
+
         StringBuilder shaderSource = new StringBuilder();
-        try (InputStream inputStream = getClass().getResourceAsStream(filePath);
+        try (inputStream;
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 shaderSource.append(line).append("\n");
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load shader file: " + filePath, e);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read classpath shader: " + filePath, e);
         }
         return shaderSource.toString();
+    }
+
+    private String readExternalShaderFile(String filePath) {
+        validateFilePath(filePath);
+
+        Path resolvedPath = Paths.get(filePath).toAbsolutePath().normalize();
+        try {
+            return FileUtils.loadAsString(resolvedPath.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Shader was not found on the classpath or filesystem: " + filePath
+                            + " (resolved filesystem path: " + resolvedPath + ")",
+                    e);
+        }
+    }
+
+    private void validateFilePath(String filePath) {
+        if (filePath == null || filePath.isBlank()) {
+            throw new IllegalArgumentException("Shader file path cannot be null or blank");
+        }
     }
 }

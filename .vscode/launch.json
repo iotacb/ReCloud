@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
+      "mainClass": "custom_shader.Main",
+      "projectName": "cloud"
+    },
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
+      "mainClass": "flappy_bird_clone.Main",
+      "projectName": "cloud"
+    },
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
+      "mainClass": "physics_demo.Main",
+      "projectName": "cloud"
+    },
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
+      "mainClass": "balls_demo.Main",
+      "projectName": "cloud"
+    },
+    {
+      "type": "java",
+      "name": "Launch current demo",
+      "request": "launch",
+      "mainClass": "${file}",
+      "projectName": "cloud",
+      "osx": {
+        "vmArgs": [
+          "-XstartOnFirstThread",
+          "--enable-native-access=ALL-UNNAMED"
+        ]
+      }
+    }
+  ]
+}

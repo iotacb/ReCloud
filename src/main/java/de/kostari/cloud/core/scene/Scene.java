@@ -3,14 +3,17 @@ package de.kostari.cloud.core.scene;
 import java.util.ArrayList;
 
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.physics.PhysicsWorld;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.utils.render.Render;
+import de.kostari.cloud.core.window.Time;
 
 public class Scene {
 
     private ArrayList<GameObject> gameObjects = new ArrayList<>();
     private ArrayList<GameObject> gameObjectsToDestroy = new ArrayList<>();
     private ArrayList<Canvas> canvases = new ArrayList<>();
+    private final PhysicsWorld physicsWorld = new PhysicsWorld();
 
     public boolean isInitialized;
 
@@ -48,6 +51,8 @@ public class Scene {
             gameObjects.remove(gameObject);
         }
         gameObjectsToDestroy.clear();
+
+        physicsWorld.step(gameObjects, Time.delta);
 
         if (camera != null) {
             camera.update();
@@ -108,6 +113,13 @@ public class Scene {
 
     public Camera getCamera() {
         return camera;
+    }
+
+    /**
+     * Returns this scene's physics settings and simulator.
+     */
+    public PhysicsWorld physics() {
+        return physicsWorld;
     }
 
     public void registerCanvas(Canvas canvas) {

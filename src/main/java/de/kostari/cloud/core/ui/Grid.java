@@ -34,7 +34,7 @@ public class Grid extends Panel {
 
         for (int rowStart = 0; rowStart < count; rowStart += columns) {
             int rowEnd = Math.min(rowStart + columns, count);
-            float rowHeight = rowHeight(visibleChildren, rowStart, rowEnd);
+            float rowHeight = rowHeight(visibleChildren, rowStart, rowEnd, cellWidth);
             float cursorX = x;
 
             for (int i = rowStart; i < rowEnd; i++) {
@@ -43,7 +43,7 @@ public class Grid extends Panel {
                 float availableWidth = Math.max(0, cellWidth - margin.horizontal());
                 float availableHeight = Math.max(0, rowHeight - margin.vertical());
                 float childWidth = childSize(child, true, availableWidth);
-                float childHeight = childSize(child, false, availableHeight);
+                float childHeight = childHeight(child, availableWidth, availableHeight);
                 float childX = cursorX + margin.left + alignOffset(availableWidth, childWidth);
                 float childY = cursorY + margin.top + alignOffset(availableHeight, childHeight);
 
@@ -88,6 +88,34 @@ public class Grid extends Panel {
         return height;
     }
 
+    @Override
+    protected float preferredInnerHeight(float availableWidth) {
+        List<UIElement> visibleChildren = visibleChildren();
+        if (visibleChildren.isEmpty()) {
+            return 0;
+        }
+
+        int columns = style().columns();
+        int rows = (int) Math.ceil(visibleChildren.size() / (float) columns);
+        if (style().hasRowHeight()) {
+            return style().rowHeight() * rows + style().rowGap() * Math.max(0, rows - 1);
+        }
+
+        float gapWidth = style().columnGap() * Math.max(0, columns - 1);
+        float cellWidth = Math.max(0, (availableWidth - gapWidth) / columns);
+        float height = 0;
+        for (int rowStart = 0; rowStart < visibleChildren.size(); rowStart += columns) {
+            int rowEnd = Math.min(rowStart + columns, visibleChildren.size());
+            float rowHeight = 0;
+            for (int i = rowStart; i < rowEnd; i++) {
+                rowHeight = Math.max(rowHeight, visibleChildren.get(i).outerPreferredHeight(cellWidth));
+            }
+            height += rowHeight;
+        }
+        height += style().rowGap() * Math.max(0, rows - 1);
+        return height;
+    }
+
     private List<UIElement> visibleChildren() {
         List<UIElement> visibleChildren = new ArrayList<>();
         for (UIElement child : children()) {
@@ -110,6 +138,18 @@ public class Grid extends Panel {
         return rowHeight;
     }
 
+    private float rowHeight(List<UIElement> children, int start, int end, float cellWidth) {
+        if (style().hasRowHeight()) {
+            return style().rowHeight();
+        }
+
+        float rowHeight = 0;
+        for (int i = start; i < end; i++) {
+            rowHeight = Math.max(rowHeight, children.get(i).outerPreferredHeight(cellWidth));
+        }
+        return rowHeight;
+    }
+
     private float childSize(UIElement child, boolean width, float available) {
         boolean explicit = width ? child.style().hasWidth() : child.style().hasHeight();
         if (style().alignItems() == AlignItems.STRETCH && !explicit) {
@@ -118,6 +158,13 @@ public class Grid extends Panel {
 
         float preferred = width ? child.preferredWidth() : child.preferredHeight();
         return Math.min(preferred, available);
+    }
+
+    private float childHeight(UIElement child, float availableWidth, float availableHeight) {
+        if (style().alignItems() == AlignItems.STRETCH && !child.style().hasHeight()) {
+            return availableHeight;
+        }
+        return Math.min(child.preferredHeight(availableWidth), availableHeight);
     }
 
     private float alignOffset(float available, float childSize) {

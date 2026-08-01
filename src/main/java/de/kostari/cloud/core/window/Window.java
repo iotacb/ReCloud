@@ -280,6 +280,15 @@ public class Window {
         destroy();
     }
 
+    /**
+     * Requests that the window closes at the end of the current frame.
+     */
+    public void close() {
+        if (initialized && windowId != 0) {
+            GLFW.glfwSetWindowShouldClose(windowId, true);
+        }
+    }
+
     public void setResizable(boolean resizable) {
         this.resizable = resizable;
     }

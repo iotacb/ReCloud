@@ -26,6 +26,7 @@ You can run any demo by name:
 .\scripts\run-demo.ps1 flappy_bird_clone
 .\scripts\run-demo.ps1 particle_system_demo
 .\scripts\run-demo.ps1 physics_demo
+.\scripts\run-demo.ps1 tower_climber
 .\scripts\run-demo.ps1 ui_system
 ```
 
@@ -50,6 +51,73 @@ Texture sprite = new Texture("./demo_assets/player.png").load();
 Render.drawTexture(sprite, playerX, playerY, 64, 64, true);
 Render.drawRect(20, 20, 120, 32, Colors.CYAN);
 ```
+
+Sprite sheets use top-left, row-major cell coordinates. Each returned cell is
+a lightweight UV region that shares the sheet's single GPU texture:
+
+```java
+TextureSheet runSheet = new TextureSheet("./demo_assets/tower_climber/run.png", 128, 128);
+Texture frame = runSheet.getCellTexture(frameIndex);
+
+Render.drawTexture(frame, playerX, playerY, 176, 176, true);
+```
+
+## Tower Climber demo
+
+Tower Climber streams an increasingly difficult procedural tower as the player
+ascends. Squash patrolling, flying, and evasive enemies to release XP, level up
+movement and vitality, and trigger a world-warping power surge. Score combines
+height, eliminations, and levels, with a persistent local high score. Procedural
+sections mix moving and fragile platforms, optional reward ledges, recovery
+floors, two-lane risk/reward forks, zone milestones, and gravity-slingshot pads
+that open up larger jumps. Every run receives a fresh procedural seed and shows
+its short tower code in the HUD and final results. Later zones also introduce
+energy vents with a visible charge warning, short damaging beam, and a wide
+enemy-free safety lane. Game-over results preserve the tower seed, allowing an
+exact same-tower retry or a newly generated route, and celebrate new local
+records separately.
+Platforms are one-way ledges: the climber passes through them while rising and
+lands on their top while falling. Use A/D or the arrow keys to move, Space/W/Up
+to jump, Shift/K to dash, the mouse to aim through 360 degrees, and left-click
+(or E/J) to attack. Number keys 1–3 equip unlocked weapons, the mouse wheel
+cycles them, U/Tab opens the Ascension Grid, right-click/F casts an unlocked
+Astral Nova while airborne, S/Down fast-falls, Escape/P pauses, R retries after
+defeat, and F3 inspects every gameplay collider. Dashing works on the ground or
+once in the air, with the air use restored on landing.
+
+Each run starts with an upgrade core and awards another on every level. The
+Ascension Grid unlocks the long-range Aether Bow, a rapid three-way piercing
+Star Shuriken volley, Double Jump, Astral Nova, and an expanded Aether reservoir.
+Defeated enemies drop distinct violet Aether shards in addition to XP. Charging
+Astral Nova suspends the climber in midair, locks movement, and culminates in a
+screen-wide shockwave that defeats every visible enemy once enough Aether has
+been collected.
+
+Gold gravity-slingshot platforms no longer launch automatically. The climber can
+walk normally on them or tap jump for a short hop. Holding jump charges a live
+ballistic preview; A/D eases the aim between directions, and releasing jump
+applies the displayed velocity. Charge strength controls both arc height and
+horizontal speed.
+
+Successful stomps use a short non-blocking hit-stop, squash afterimages,
+expanding shockwaves, and pitch-rising combo audio to make chained enemy defeats
+increasingly forceful without interrupting input responsiveness.
+
+The world is rendered through an ordered post-processing showcase: a restrained
+animated atmosphere supplies zone tinting, lens curvature, scanlines, grain,
+storm chromatic separation, and a low-health danger treatment; a subtle
+resolution-aware pixelation pass unifies the world on a 360-line virtual pixel
+grid; a half-resolution multi-pass bloom lifts emissive sprites; and screen-space
+combat rifts add local refraction for slash hits, damage glitches, and
+gravity-sling tunnel pulses.
+Level-ups retain their separate expanding warp shader, while HUD canvases render
+after the effect stack so gameplay information remains crisp.
+
+The demo includes original transparent enemy and XP sprites, event-driven sound
+effects, and a looping 8-bit tower soundtrack. Third-party audio licensing and
+source links are recorded in `demo_assets/tower_climber/ATTRIBUTION.md`. Its
+animated front end previews the actual climber, enemies, and collectibles,
+provides a compact run briefing, and transitions smoothly into each ascent.
 
 ## Custom shaders
 

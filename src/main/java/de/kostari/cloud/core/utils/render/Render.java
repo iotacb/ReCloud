@@ -249,7 +249,8 @@ public class Render {
         if (texture == null) {
             return;
         }
-        drawTexture(x, y, width, height, centered, texture.getTextureId(), color);
+        queueRotatedQuad(x, y, width, height, centered, 0, color, texture.getTextureId(),
+                texture.getU0(), texture.getV0(), texture.getU1(), texture.getV1());
     }
 
     public static void drawTexture(Texture texture, float x, float y, float width, float height, boolean centered) {
@@ -289,7 +290,8 @@ public class Render {
         if (texture == null) {
             return;
         }
-        drawRotatedTexture(x, y, width, height, centered, texture.getTextureId(), angleDegrees, color);
+        queueRotatedQuad(x, y, width, height, centered, angleDegrees, color, texture.getTextureId(),
+                texture.getU0(), texture.getV0(), texture.getU1(), texture.getV1());
     }
 
     public static void drawRect(int x, int y, int width, int height, boolean centered, Color4f color) {

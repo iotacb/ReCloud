@@ -133,6 +133,15 @@ public class PhysicsWorld {
             return;
         }
 
+        PhysicsBody oneWay = a.isOneWayPlatform() ? a : b.isOneWayPlatform() ? b : null;
+        if (oneWay != null) {
+            PhysicsBody traveler = oneWay == a ? b : a;
+            if (traveler.type() != BodyType.DYNAMIC || oneWay.isSensor()
+                    || !canLandOnOneWay(traveler, oneWay)) {
+                return;
+            }
+        }
+
         float overlapX = Math.min(aBounds.right(), bBounds.right())
                 - Math.max(aBounds.left(), bBounds.left());
         float overlapY = Math.min(aBounds.bottom(), bBounds.bottom())
@@ -142,7 +151,12 @@ public class PhysicsWorld {
         float normalY = 0;
         float penetration;
 
-        if (overlapX < overlapY) {
+        if (oneWay != null) {
+            PhysicsBody traveler = oneWay == a ? b : a;
+            AABB travelerBounds = traveler.bounds();
+            penetration = travelerBounds.bottom() - oneWay.bounds().top();
+            normalY = traveler == a ? 1 : -1;
+        } else if (overlapX < overlapY) {
             normalX = aBounds.centerX() < bBounds.centerX() ? 1 : -1;
             penetration = overlapX;
         } else {
@@ -186,6 +200,19 @@ public class PhysicsWorld {
         b.velocity.add(impulseX * inverseMassB, impulseY * inverseMassB);
 
         applyFriction(a, b, normalX, normalY, impulseMagnitude, inverseMassA, inverseMassB, inverseMassSum);
+    }
+
+    private boolean canLandOnOneWay(PhysicsBody traveler, PhysicsBody platform) {
+        float relativeVerticalSpeed = traveler.velocity.y - platform.velocity.y;
+        if (relativeVerticalSpeed < 0) {
+            return false;
+        }
+
+        AABB travelerBounds = traveler.bounds();
+        AABB platformBounds = platform.bounds();
+        float landingTolerance = 4 + relativeVerticalSpeed * maximumDelta / substeps;
+        return travelerBounds.centerY() < platformBounds.top()
+                && travelerBounds.bottom() <= platformBounds.top() + landingTolerance;
     }
 
     private void applyFriction(

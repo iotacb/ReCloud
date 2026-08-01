@@ -38,6 +38,10 @@ public class Texture {
     private String filePath;
     private ByteBuffer imageData;
     private int filtering = GL_NEAREST;
+    private float u0;
+    private float v0;
+    private float u1 = 1;
+    private float v1 = 1;
 
     public Texture(String filePath) {
         this.filePath = filePath;
@@ -45,6 +49,43 @@ public class Texture {
 
     public Texture() {
         this.textureId = glGenTextures();
+    }
+
+    /**
+     * Creates a view into an already loaded texture.
+     *
+     * The returned texture shares the source texture's OpenGL id and only changes
+     * its size and UV coordinates. This keeps sprite-sheet cells cheap: no image
+     * data is copied and no additional GPU texture is allocated.
+     */
+    static Texture region(Texture source, float x, float y, float width, float height) {
+        if (source == null || source.getTextureId() <= 0) {
+            throw new IllegalArgumentException("Source texture must be loaded before creating a region");
+        }
+        if (width <= 0 || height <= 0) {
+            throw new IllegalArgumentException("Texture region width and height must be greater than zero");
+        }
+        if (x < 0 || y < 0 || x + width > source.getWidth() || y + height > source.getHeight()) {
+            throw new IndexOutOfBoundsException("Texture region lies outside the source texture");
+        }
+
+        Texture region = new Texture(source);
+        region.width = width;
+        region.height = height;
+        region.textureId = source.textureId;
+        region.filePath = source.filePath;
+
+        float sourceWidth = source.getWidth();
+        float sourceHeight = source.getHeight();
+        region.u0 = source.u0 + (x / sourceWidth) * (source.u1 - source.u0);
+        region.v0 = source.v0 + (y / sourceHeight) * (source.v1 - source.v0);
+        region.u1 = source.u0 + ((x + width) / sourceWidth) * (source.u1 - source.u0);
+        region.v1 = source.v0 + ((y + height) / sourceHeight) * (source.v1 - source.v0);
+        return region;
+    }
+
+    private Texture(Texture source) {
+        this.filtering = source.filtering;
     }
 
     public static Texture fromBuffer(int width, int height, ByteBuffer buffer) {
@@ -110,6 +151,22 @@ public class Texture {
 
     public int getTextureId() {
         return textureId;
+    }
+
+    public float getU0() {
+        return u0;
+    }
+
+    public float getV0() {
+        return v0;
+    }
+
+    public float getU1() {
+        return u1;
+    }
+
+    public float getV1() {
+        return v1;
     }
 
     public ByteBuffer getImageData() {

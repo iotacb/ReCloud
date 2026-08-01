@@ -6,6 +6,7 @@ import java.nio.ShortBuffer;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.sound.sampled.AudioInputStream;
@@ -16,6 +17,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.stb.STBVorbis;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import de.kostari.cloud.core.utils.math.MathUtil;
 
@@ -57,8 +59,14 @@ public class Audio {
                 throw new RuntimeException("Failed to load audio file: " + filePath + "!");
             }
 
-            int format = AL10.AL_FORMAT_MONO16; // Assume mono format
+            int channelCount = channels.get();
+            int format = channelCount == 1 ? AL10.AL_FORMAT_MONO16 : AL10.AL_FORMAT_STEREO16;
+            if (channelCount != 1 && channelCount != 2) {
+                MemoryUtil.memFree(rawAudioBuffer);
+                throw new RuntimeException("Unsupported OGG channel count " + channelCount + ": " + filePath);
+            }
             AL10.alBufferData(bufferId, format, rawAudioBuffer, sampleRate.get());
+            MemoryUtil.memFree(rawAudioBuffer);
         }
     }
 
@@ -83,46 +91,58 @@ public class Audio {
         }
     }
 
-    private int createSource() {
+    private int createSource(float sourcePitch) {
         int sourceId = AL10.alGenSources();
         AL10.alSourcei(sourceId, AL10.AL_BUFFER, bufferId);
         // AL10.alSource3f(sourceId, AL10.AL_POSITION, Window.get().getWidth() / 2,
         // Window.get().getHeight() / 2, 0f);
-        AL10.alSourcef(sourceId, AL10.AL_PITCH, pitch);
+        AL10.alSourcef(sourceId, AL10.AL_PITCH, sourcePitch);
         AL10.alSourcef(sourceId, AL10.AL_GAIN, gain);
         AL10.alSourcei(sourceId, AL10.AL_LOOPING, looping ? AL10.AL_TRUE : AL10.AL_FALSE);
         return sourceId;
     }
 
     public void update() {
+        releaseStoppedSources();
         for (int sourceId : sourceIds) {
             AL10.alSourcef(sourceId, AL10.AL_PITCH, pitch);
             AL10.alSourcef(sourceId, AL10.AL_GAIN, gain);
+            AL10.alSourcei(sourceId, AL10.AL_LOOPING, looping ? AL10.AL_TRUE : AL10.AL_FALSE);
         }
     }
 
     public void setGain(float gain) {
         this.gain = gain;
-        update();
+        releaseStoppedSources();
+        for (int sourceId : sourceIds) {
+            AL10.alSourcef(sourceId, AL10.AL_GAIN, gain);
+        }
     }
 
     public void setPitch(float pitch) {
         this.pitch = pitch;
-        update();
+        releaseStoppedSources();
+        for (int sourceId : sourceIds) {
+            AL10.alSourcef(sourceId, AL10.AL_PITCH, pitch);
+        }
     }
 
     public void setLooping(boolean looping) {
         this.looping = looping;
-        update();
+        releaseStoppedSources();
+        for (int sourceId : sourceIds) {
+            AL10.alSourcei(sourceId, AL10.AL_LOOPING, looping ? AL10.AL_TRUE : AL10.AL_FALSE);
+        }
     }
 
     public void play(boolean randomizePitch) {
-        int sourceId = createSource();
-        AL10.alSourcePlay(sourceId);
-        if (randomizePitch) {
-            setPitch(1f + MathUtil.random(-.1f, .1f));
-        }
+        releaseStoppedSources();
+        float sourcePitch = randomizePitch
+                ? pitch * (1f + MathUtil.random(-0.1f, 0.1f))
+                : pitch;
+        int sourceId = createSource(sourcePitch);
         sourceIds.add(sourceId);
+        AL10.alSourcePlay(sourceId);
     }
 
     public void play() {
@@ -140,5 +160,18 @@ public class Audio {
     public void cleanUp() {
         stop();
         AL10.alDeleteBuffers(bufferId);
+    }
+
+    private void releaseStoppedSources() {
+        Iterator<Integer> iterator = sourceIds.iterator();
+        while (iterator.hasNext()) {
+            int sourceId = iterator.next();
+            int state = AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE);
+            if (state == AL10.AL_PLAYING || state == AL10.AL_PAUSED) {
+                continue;
+            }
+            AL10.alDeleteSources(sourceId);
+            iterator.remove();
+        }
     }
 }

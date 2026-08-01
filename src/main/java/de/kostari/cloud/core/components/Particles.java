@@ -122,11 +122,16 @@ public class Particles extends Component {
             }
 
             if (renderer.texture == null) {
-                Render.drawRotatedRect(x, y, particle.size, particle.size, true,
+                Render.drawRotatedRect(x, y,
+                        particle.size * renderer.widthMultiplier,
+                        particle.size * renderer.heightMultiplier,
+                        true,
                         particle.renderColor, rotation);
             } else {
-                Render.drawRotatedTexture(renderer.texture, x, y, particle.size,
-                        particle.size, true, rotation, particle.renderColor);
+                Render.drawRotatedTexture(renderer.texture, x, y,
+                        particle.size * renderer.widthMultiplier,
+                        particle.size * renderer.heightMultiplier,
+                        true, rotation, particle.renderColor);
             }
         }
     }
@@ -696,6 +701,14 @@ public class Particles extends Component {
 
     public static final class RendererModule {
         public Texture texture;
+        public float widthMultiplier = 1;
+        public float heightMultiplier = 1;
+
+        public RendererModule stretch(float widthMultiplier, float heightMultiplier) {
+            this.widthMultiplier = Math.max(0, widthMultiplier);
+            this.heightMultiplier = Math.max(0, heightMultiplier);
+            return this;
+        }
     }
 
     /**

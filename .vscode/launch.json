@@ -5,6 +5,13 @@
       "type": "java",
       "name": "Main",
       "request": "launch",
+      "mainClass": "tower_climber.Main",
+      "projectName": "cloud"
+    },
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
       "mainClass": "custom_shader.Main",
       "projectName": "cloud"
     },

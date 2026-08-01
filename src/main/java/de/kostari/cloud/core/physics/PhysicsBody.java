@@ -35,6 +35,7 @@ public class PhysicsBody extends Component {
     private boolean sensor;
     private boolean enabled = true;
     private boolean grounded;
+    private boolean oneWayPlatform;
 
     public PhysicsBody(float width, float height) {
         this(BodyType.DYNAMIC, width, height);
@@ -175,6 +176,20 @@ public class PhysicsBody extends Component {
 
     public boolean isSensor() {
         return sensor;
+    }
+
+    /**
+     * Makes this body collide only with dynamic bodies descending onto its top.
+     * This is intended for platformer ledges that can be jumped through from
+     * below without producing side or underside collisions.
+     */
+    public PhysicsBody oneWayPlatform(boolean oneWayPlatform) {
+        this.oneWayPlatform = oneWayPlatform;
+        return this;
+    }
+
+    public boolean isOneWayPlatform() {
+        return oneWayPlatform;
     }
 
     public PhysicsBody layer(int layer) {

@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("first_window", "balls_demo", "camera_demo", "custom_shader", "drawing_stuff", "flappy_bird_clone", "particle_system_demo", "physics_demo", "ui_system")]
+    [ValidateSet("first_window", "balls_demo", "camera_demo", "custom_shader", "drawing_stuff", "flappy_bird_clone", "particle_system_demo", "physics_demo", "tower_climber", "ui_system")]
     [string]$Demo = "first_window",
 
     [switch]$List
@@ -23,6 +23,7 @@ $DemoMainClasses = @{
     flappy_bird_clone = "flappy_bird_clone.Main"
     particle_system_demo = "particle_system_demo.Main"
     physics_demo      = "physics_demo.Main"
+    tower_climber     = "tower_climber.Main"
     ui_system         = "ui_system.Main"
 }
 

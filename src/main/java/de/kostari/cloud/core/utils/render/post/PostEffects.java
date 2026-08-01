@@ -1,5 +1,7 @@
 package de.kostari.cloud.core.utils.render.post;
 
+import de.kostari.cloud.core.lighting.LightingEffect;
+
 public final class PostEffects {
 
     private PostEffects() {
@@ -23,5 +25,9 @@ public final class PostEffects {
 
     public static ColorGradingEffect colorGrading() {
         return new ColorGradingEffect();
+    }
+
+    public static LightingEffect lighting() {
+        return new LightingEffect();
     }
 }

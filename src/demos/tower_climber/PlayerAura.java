@@ -2,6 +2,7 @@ package tower_climber;
 
 import de.kostari.cloud.core.components.Particles;
 import de.kostari.cloud.core.components.Particles.SimulationSpace;
+import de.kostari.cloud.core.lighting.Light2D;
 import de.kostari.cloud.core.objects.GameObject;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.render.Render;
@@ -12,6 +13,7 @@ public final class PlayerAura extends GameObject {
 
     private final Player player;
     private final Particles motes;
+    private final Light2D light;
     private int powerLevel = 1;
     private boolean active = true;
 
@@ -45,6 +47,11 @@ public final class PlayerAura extends GameObject {
         motes.rotationOverLifetime.enabled = true;
         motes.rotationOverLifetime.angularVelocity.set(-180, 180);
         addComponent(motes);
+        light = addComponent(new Light2D(180, new Color4f(0.38f, 1f, 0.84f, 1))
+                .intensity(0.42f)
+                .falloff(1.7f)
+                .softness(12)
+                .shadowStrength(0.58f));
     }
 
     @Override
@@ -52,6 +59,11 @@ public final class PlayerAura extends GameObject {
         transform.position.set(player.transform.position);
         float movementBoost = Math.min(7, Math.abs(player.getBody().velocity.x) / 65f);
         motes.emission.rateOverTime = active ? 1 + Math.max(0, powerLevel - 1) * 2.6f + movementBoost : 0;
+        float channelBoost = player.isChanneling() ? 1.35f : 0;
+        float pulse = 0.93f + 0.07f * (float) Math.sin(Time.timePassed * 5.2f);
+        light.intensity(active ? (0.32f + Math.min(0.72f, powerLevel * 0.07f) + channelBoost) * pulse : 0)
+                .radius(165 + Math.min(80, powerLevel * 6) + (player.isChanneling() ? 115 : 0))
+                .enabled(active);
         super.update();
     }
 
@@ -83,6 +95,7 @@ public final class PlayerAura extends GameObject {
         this.active = active;
         if (!active) {
             motes.stop();
+            light.enabled(false);
         }
     }
 }

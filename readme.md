@@ -19,11 +19,13 @@ Available demos:
 You can run any demo by name:
 
 ```powershell
+.\scripts\run-demo.ps1 arena_survivor
 .\scripts\run-demo.ps1 balls_demo
 .\scripts\run-demo.ps1 camera_demo
 .\scripts\run-demo.ps1 custom_shader
 .\scripts\run-demo.ps1 drawing_stuff
 .\scripts\run-demo.ps1 flappy_bird_clone
+.\scripts\run-demo.ps1 lighting_demo
 .\scripts\run-demo.ps1 particle_system_demo
 .\scripts\run-demo.ps1 physics_demo
 .\scripts\run-demo.ps1 tower_climber
@@ -39,6 +41,15 @@ On macOS, open the demo `Main.java` file in VS Code and select
 configuration adds `-XstartOnFirstThread`, which GLFW requires on macOS, and
 enables native access for LWJGL on current JDKs. The configuration is scoped to
 macOS, so Windows launches are unchanged.
+
+## Aether Swarm demo
+
+Aether Swarm is a polished arena-survival game with automatic orbiting weapons,
+enemy waves, a between-wave upgrade shop, five weapon classes, six enemy types,
+camera follow, particles, audio, and a layered shader stack. Engine-native 2D
+lighting gives the player, weapons, projectiles, Wisps, and the Rift Baron dynamic
+colored light, while enemies act as moving soft-shadow occluders. See
+`src/demos/arena_survivor/README.md` for controls, mechanics, and asset licenses.
 
 ## Rendering helpers
 
@@ -103,9 +114,12 @@ Successful stomps use a short non-blocking hit-stop, squash afterimages,
 expanding shockwaves, and pitch-rising combo audio to make chained enemy defeats
 increasingly forceful without interrupting input responsiveness.
 
-The world is rendered through an ordered post-processing showcase: a restrained
-animated atmosphere supplies zone tinting, lens curvature, scanlines, grain,
-storm chromatic separation, and a low-health danger treatment; a subtle
+The world is rendered through an ordered post-processing showcase: Cloud's 2D
+lighting pass supplies zone-tinted ambient light, shadow-casting platform
+occluders, player and collectible glow, projectile illumination, combat flashes,
+Nova radiance, and full-scene storm-lightning pulses. A restrained animated
+atmosphere then supplies lens curvature, scanlines, grain, storm chromatic
+separation, and a low-health danger treatment; a subtle
 resolution-aware pixelation pass unifies the world on a 360-line virtual pixel
 grid; a half-resolution multi-pass bloom lifts emissive sprites; and screen-space
 combat rifts add local refraction for slash hits, damage glitches, and
@@ -158,6 +172,37 @@ MyEffect effect = Render.postProcessing().add(new MyEffect());
 Shader paths can point to packaged classpath resources or regular files.
 Relative asset paths are resolved from the application's working directory, so
 run the demo from the repository root when using `demo_assets/...`.
+
+## 2D lighting
+
+Enable lighting once during scene initialization, then add lights and rectangular
+occluders as components. Lighting is applied before UI rendering and follows the
+active camera, including camera zoom:
+
+```java
+LightingEffect lighting = Render.postProcessing().enableLighting()
+        .ambientColor(0.15f, 0.2f, 0.35f)
+        .ambientIntensity(0.2f);
+
+Light2D torch = torchObject.addComponent(new Light2D(320, Colors.ORANGE)
+        .intensity(1.4f)
+        .falloff(1.8f)
+        .softness(10));
+
+wall.addComponent(new LightOccluder2D(160, 32));
+```
+
+Each affected pixel traces toward its light through rotated rectangular
+occluders. A softness of zero creates a hard shadow; a positive softness uses
+spatially dithered area-light rays to form a soft penumbra without multiplying
+the tracing cost. Occluder opacity can create partial shadows. The portable
+shader supports up to `16` active lights and `32` active
+occluders; excess components are ignored for that frame. Put lighting before
+bloom and color grading in the effect stack, and remove scene-owned effects from
+`Scene.dispose()`.
+
+Run `lighting_demo` and move the mouse to exercise colored falloff, hard and soft
+shadows, rotated blockers, and a moving occluder.
 
 ## AABB physics
 

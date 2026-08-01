@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
+import de.kostari.cloud.core.lighting.LightingEffect;
 import de.kostari.cloud.core.utils.render.Shader;
 import de.kostari.cloud.core.utils.types.Color4f;
 import de.kostari.cloud.core.window.Time;
@@ -193,6 +194,14 @@ public class PostProcessing {
 
     public ColorGradingEffect enableColorGrading() {
         return add(PostEffects.colorGrading());
+    }
+
+    /**
+     * Enables scene lighting. Add this before bloom or color grading so those
+     * effects operate on the lit scene.
+     */
+    public LightingEffect enableLighting() {
+        return add(PostEffects.lighting());
     }
 
     public boolean hasActiveEffects() {

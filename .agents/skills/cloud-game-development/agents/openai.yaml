@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cloud Game Development"
+  short_description: "Build Java games with the exported Cloud library"
+  default_prompt: "Use $cloud-game-development to create a game with the exported Cloud Java library."

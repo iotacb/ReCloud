@@ -1,6 +1,7 @@
 package tower_climber;
 
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.lighting.LightOccluder2D;
 import de.kostari.cloud.core.physics.AABB;
 import de.kostari.cloud.core.physics.PhysicsBody;
 import de.kostari.cloud.core.utils.Colors;
@@ -78,6 +79,7 @@ public class TowerPlatform extends GameObject {
                 : PhysicsBody.fixed(width, height))
                 .friction(0.8f)
                 .oneWayPlatform(true));
+        addComponent(new LightOccluder2D(width, height).opacity(0.88f));
     }
 
     @Override

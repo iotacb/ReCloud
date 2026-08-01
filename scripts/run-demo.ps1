@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("first_window", "balls_demo", "camera_demo", "custom_shader", "drawing_stuff", "flappy_bird_clone", "particle_system_demo", "physics_demo", "tower_climber", "ui_system")]
+    [ValidateSet("first_window", "arena_survivor", "balls_demo", "camera_demo", "custom_shader", "drawing_stuff", "flappy_bird_clone", "lighting_demo", "particle_system_demo", "physics_demo", "tower_climber", "ui_system")]
     [string]$Demo = "first_window",
 
     [switch]$List
@@ -16,11 +16,13 @@ $MavenCmd = Join-Path $MavenRoot "bin\mvn.cmd"
 
 $DemoMainClasses = @{
     first_window      = "first_window.Main"
+    arena_survivor    = "arena_survivor.Main"
     balls_demo        = "balls_demo.Main"
     camera_demo       = "camera_demo.Main"
     custom_shader     = "custom_shader.Main"
     drawing_stuff     = "drawing_stuff.Main"
     flappy_bird_clone = "flappy_bird_clone.Main"
+    lighting_demo     = "lighting_demo.Main"
     particle_system_demo = "particle_system_demo.Main"
     physics_demo      = "physics_demo.Main"
     tower_climber     = "tower_climber.Main"

@@ -1,6 +1,7 @@
 package tower_climber;
 
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.lighting.Light2D;
 import de.kostari.cloud.core.physics.AABB;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.render.Render;
@@ -20,6 +21,7 @@ public final class EnergyVent extends GameObject {
     private float clock;
     private boolean wasActive;
     private boolean debugCollider;
+    private final Light2D light;
 
     public EnergyVent(TowerPlatform platform, float x, int zone, int difficulty, float phase) {
         this.platform = platform;
@@ -27,6 +29,12 @@ public final class EnergyVent extends GameObject {
         period = Math.max(2.05f, 2.95f - Math.max(0, difficulty - 1) * 0.055f);
         clock = Math.floorMod((int) (phase * 10_000), 10_000) / 10_000f * period;
         transform.position.set(x, platform.top());
+        Color4f lightColor = accentColor(255);
+        light = addComponent(new Light2D(145, lightColor)
+                .intensity(0.28f)
+                .falloff(1.9f)
+                .softness(8)
+                .shadowStrength(0.5f));
     }
 
     @Override
@@ -36,6 +44,9 @@ public final class EnergyVent extends GameObject {
             clock %= period;
         }
         boolean active = isActive();
+        float warning = isWarning() ? 0.85f + warningProgress() * 0.75f : 0;
+        light.intensity(active ? 2.1f * activeEnvelope() : Math.max(0.24f, warning))
+                .radius(active ? 245 : isWarning() ? 185 : 120);
         if (active && !wasActive) {
             Color4f accent = accentColor(220);
             new ImpactBurst(transform.position.x, transform.position.y - 4,

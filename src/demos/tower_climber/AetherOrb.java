@@ -1,6 +1,7 @@
 package tower_climber;
 
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.lighting.Light2D;
 import de.kostari.cloud.core.physics.AABB;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.render.Render;
@@ -16,6 +17,7 @@ public final class AetherOrb extends GameObject {
     private float velocityY;
     private float age;
     private boolean collected;
+    private final Light2D light;
 
     public AetherOrb(float x, float y, float velocityX, float velocityY, int value, float phase) {
         transform.position.set(x, y);
@@ -23,6 +25,10 @@ public final class AetherOrb extends GameObject {
         this.velocityY = velocityY;
         this.value = Math.max(1, value);
         this.phase = phase;
+        light = addComponent(new Light2D(92, new Color4f(0.69f, 0.34f, 1f, 1))
+                .intensity(0.82f)
+                .falloff(2.15f)
+                .castsShadows(false));
     }
 
     @Override
@@ -33,6 +39,7 @@ public final class AetherOrb extends GameObject {
         velocityX *= 1f / (1f + 2.2f * delta);
         velocityY *= 1f / (1f + 1.4f * delta);
         transform.position.add(velocityX * delta, velocityY * delta);
+        light.intensity(0.72f + 0.18f * (float) Math.sin(Time.timePassed * 9 + phase));
         super.update();
     }
 
@@ -75,6 +82,7 @@ public final class AetherOrb extends GameObject {
             return false;
         }
         collected = true;
+        light.enabled(false);
         destroy();
         return true;
     }

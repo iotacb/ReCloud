@@ -139,6 +139,23 @@ public class Shader {
         }
     }
 
+    /**
+     * Uploads one or more tightly packed {@code vec4} values. Create the uniform
+     * using the first array element (for example {@code lights[0]}) before
+     * calling this method.
+     */
+    public void setUniformVec4Array(String name, float[] values) {
+        if (values == null || values.length == 0 || values.length % 4 != 0) {
+            throw new IllegalArgumentException("vec4 uniform data must contain a positive multiple of four values");
+        }
+
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer buffer = stack.mallocFloat(values.length);
+            buffer.put(values).flip();
+            GL20.glUniform4fv(location(name), buffer);
+        }
+    }
+
     public void cleanup() {
         GL20.glUseProgram(0);
         for (int shaderId : shaderIds) {
@@ -167,13 +184,22 @@ public class Shader {
 
         InputStream inputStream = getClass().getResourceAsStream(filePath);
         if (inputStream == null) {
+            String packagePath = "/" + getClass().getPackageName().replace('.', '/');
+            String normalizedResourcePath = Paths.get(packagePath)
+                    .resolve(filePath)
+                    .normalize()
+                    .toString()
+                    .replace('\\', '/');
+            inputStream = getClass().getResourceAsStream(normalizedResourcePath);
+        }
+        if (inputStream == null) {
             return readExternalShaderFile(filePath);
         }
 
         StringBuilder shaderSource = new StringBuilder();
-        try (inputStream;
+        try (InputStream stream = inputStream;
                 BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                        new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 shaderSource.append(line).append("\n");

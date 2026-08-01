@@ -3,6 +3,19 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Aether Swarm",
+      "request": "launch",
+      "mainClass": "arena_survivor.Main",
+      "projectName": "cloud",
+      "osx": {
+        "vmArgs": [
+          "-XstartOnFirstThread",
+          "--enable-native-access=ALL-UNNAMED"
+        ]
+      }
+    },
+    {
+      "type": "java",
       "name": "Main",
       "request": "launch",
       "mainClass": "tower_climber.Main",

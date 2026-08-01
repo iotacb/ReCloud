@@ -9,6 +9,7 @@ import org.lwjgl.glfw.GLFW;
 
 import de.kostari.cloud.core.physics.Collision;
 import de.kostari.cloud.core.physics.AABB;
+import de.kostari.cloud.core.lighting.LightingEffect;
 import de.kostari.cloud.core.scene.Scene;
 import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.ui.Button;
@@ -109,6 +110,8 @@ public class GameScene extends Scene {
     private TowerPixelationEffect pixelationEffect;
     private TowerImpactPostEffect impactPostEffect;
     private BloomEffect bloomEffect;
+    private LightingEffect lightingEffect;
+    private TowerLightingRig lightingRig;
     private GameAudio audio;
     private PlayerAura playerAura;
     private final RunProgression progression = new RunProgression();
@@ -182,6 +185,10 @@ public class GameScene extends Scene {
         bestAtRunStart = highScore;
         TowerSprites.load();
         audio = new GameAudio();
+        lightingEffect = Render.postProcessing().enableLighting()
+                .ambientColor(0.72f, 0.8f, 0.94f)
+                .ambientIntensity(0.72f);
+        lightingRig = new TowerLightingRig();
         atmosphereEffect = Render.postProcessing().add(new TowerAtmosphereEffect());
         pixelationEffect = Render.postProcessing().add(
                 new TowerPixelationEffect().virtualHeight(360).strength(1f));
@@ -343,6 +350,10 @@ public class GameScene extends Scene {
 
     @Override
     public void dispose() {
+        if (lightingEffect != null) {
+            Render.postProcessing().remove(lightingEffect);
+            lightingEffect = null;
+        }
         if (atmosphereEffect != null) {
             Render.postProcessing().remove(atmosphereEffect);
             atmosphereEffect = null;
@@ -597,6 +608,9 @@ public class GameScene extends Scene {
             Color4f impactColor = combo >= 3
                     ? Colors.from255(223, 147, 255, 255)
                     : Colors.from255(112, 255, 222, 255);
+            lightingRig.flashCombat(contact.enemy().transform.position.x,
+                    contact.enemy().transform.position.y,
+                    impactColor, 270, 1.55f + Math.min(0.55f, combo * 0.08f), 0.32f);
             int burstCount = 16 + Math.min(16, combo * 3);
             new ImpactBurst(contact.enemy().transform.position.x, contact.enemy().transform.position.y,
                     impactColor,
@@ -747,6 +761,9 @@ public class GameScene extends Scene {
         new ImpactBurst(enemy.transform.position.x, enemy.transform.position.y,
                 impact, Colors.from255(91, 231, 211, 0),
                 weapon == Weapon.BOW ? 25 : 19, weapon == Weapon.BOW ? 340 : 285);
+        lightingRig.flashCombat(enemy.transform.position.x, enemy.transform.position.y,
+                impact, weapon == Weapon.BOW ? 310 : 245,
+                weapon == Weapon.BOW ? 1.9f : 1.35f, 0.28f);
         Vector2f screen = getCamera().worldToScreen(
                 enemy.transform.position.x, enemy.transform.position.y);
         impactPostEffect.triggerSlash(screen.x, screen.y,
@@ -764,6 +781,8 @@ public class GameScene extends Scene {
         }
         novaChargeTime = Math.min(NOVA_CHARGE_DURATION,
                 novaChargeTime + Math.max(0, Math.min(delta, 0.05f)));
+        lightingRig.updateNovaCharge(player.transform.position.x, player.transform.position.y,
+                novaChargeTime / NOVA_CHARGE_DURATION, true);
         if (novaChargeEffect != null) {
             novaChargeEffect.progress(novaChargeTime / NOVA_CHARGE_DURATION);
         }
@@ -791,6 +810,7 @@ public class GameScene extends Scene {
         setSlingshotPlatform(null);
         novaChargeTime = 0;
         player.setChanneling(true);
+        lightingRig.updateNovaCharge(player.transform.position.x, player.transform.position.y, 0, true);
         novaChargeEffect = new NovaChargeEffect(player);
         audio.novaCharge();
         levelToast.text("ASTRAL NOVA CHARGING\nMOVEMENT SUSPENDED");
@@ -817,6 +837,7 @@ public class GameScene extends Scene {
                     30, 390);
         }
         new AstralShockwave(player.transform.position.x, player.transform.position.y);
+        lightingRig.releaseNova(player.transform.position.x, player.transform.position.y);
         new ImpactBurst(player.transform.position.x, player.transform.position.y,
                 Colors.from255(235, 219, 255, 255), Colors.from255(120, 75, 255, 0),
                 72, 540);
@@ -847,6 +868,8 @@ public class GameScene extends Scene {
         new ImpactBurst(player.transform.position.x, player.transform.position.y,
                 Colors.from255(197, 126, 255, 235), Colors.from255(91, 231, 211, 0),
                 10 + added * 3, 145);
+        lightingRig.flashCombat(player.transform.position.x, player.transform.position.y,
+                Colors.from255(197, 126, 255, 255), 210, 1.2f, 0.3f);
         if (progression.canCastNova()) {
             levelToast.text("AETHER RESONANCE FULL\nAIRBORNE RMB / F  /  ASTRAL NOVA");
             levelToastTimer = Math.max(levelToastTimer, 1.35f);
@@ -877,6 +900,8 @@ public class GameScene extends Scene {
                 Window.get().getWidth(), Window.get().getHeight());
         new ImpactBurst(player.transform.position.x, player.transform.position.y,
                 burstStart, burstEnd, 14, 210);
+        lightingRig.flashCombat(player.transform.position.x, player.transform.position.y,
+                burstStart, 330, 2.15f, 0.42f);
         addCameraTrauma(0.58f);
         if (health <= 0) {
             endGame(false);
@@ -918,6 +943,8 @@ public class GameScene extends Scene {
         warpEffect.trigger(screen.x, screen.y, Window.get().getWidth(), Window.get().getHeight());
         new ImpactBurst(player.transform.position.x, player.transform.position.y,
                 Colors.from255(217, 255, 232, 255), Colors.from255(91, 231, 211, 0), 48, 390);
+        lightingRig.flashCombat(player.transform.position.x, player.transform.position.y,
+                Colors.from255(180, 255, 226, 255), 560, 3.2f, 0.7f);
         addCameraTrauma(1);
     }
 
@@ -1014,6 +1041,8 @@ public class GameScene extends Scene {
         new ImpactBurst(player.transform.position.x, launchPlatform.top(),
                 Colors.from255(255, 238, 126, 235), Colors.from255(82, 226, 255, 0),
                 26, 275);
+        lightingRig.flashCombat(player.transform.position.x, launchPlatform.top(),
+                Colors.from255(255, 228, 128, 255), 340, 2.25f, 0.46f);
         addCameraTrauma(0.28f);
         launchPlatform.setSlingshotPreview(0, slingshotAim, false);
         slingshotCharging = false;
@@ -1187,6 +1216,7 @@ public class GameScene extends Scene {
             novaChargeEffect = null;
         }
         player.setChanneling(false);
+        lightingRig.updateNovaCharge(player.transform.position.x, player.transform.position.y, 0, false);
         health = 0;
         setSlingshotPlatform(null);
         player.setControlsEnabled(false);
@@ -1550,6 +1580,11 @@ public class GameScene extends Scene {
         int zone = tower.zoneIndex(checkpointLevel);
         rain.setIntensity(1 + zone * 0.17f + Math.min(0.18f, checkpointLevel / 240f));
         lightningFlash = Math.max(0, lightningFlash - delta * 4.5f);
+        float strikeSide = ((checkpointLevel / 12) & 1) == 0 ? -1 : 1;
+        float strikeX = strikeSide < 0 ? tower.getTowerLeft() - 58 : tower.getTowerRight() + 58;
+        lightingRig.updateStorm(strikeX,
+                getCamera().transform.position.y + Window.get().getHeight() * 0.34f,
+                lightningFlash, zone);
         if (zone != 3) {
             return;
         }
@@ -1572,6 +1607,22 @@ public class GameScene extends Scene {
         float storm = previousStorm + (currentStorm - previousStorm) * smoothBlend;
         atmosphereEffect.update(delta, previousZone, displayedZone, zoneBlend,
                 danger, storm, lightningFlash);
+        Color4f ambientFrom = lightingAmbient(previousZone);
+        Color4f ambientTo = lightingAmbient(displayedZone);
+        lightingEffect.ambientColor(
+                ambientFrom.r + (ambientTo.r - ambientFrom.r) * smoothBlend,
+                ambientFrom.g + (ambientTo.g - ambientFrom.g) * smoothBlend,
+                ambientFrom.b + (ambientTo.b - ambientFrom.b) * smoothBlend)
+                .ambientIntensity(0.72f - danger * 0.08f + lightningFlash * 0.04f);
+    }
+
+    private Color4f lightingAmbient(int zone) {
+        return switch (Math.floorMod(zone, 4)) {
+            case 1 -> new Color4f(0.62f, 0.86f, 0.76f, 1);
+            case 2 -> new Color4f(0.82f, 0.64f, 0.94f, 1);
+            case 3 -> new Color4f(0.66f, 0.76f, 1f, 1);
+            default -> new Color4f(0.72f, 0.8f, 0.94f, 1);
+        };
     }
 
     private Color4f zoneColor(Color4f[] palette) {

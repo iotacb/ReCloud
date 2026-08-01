@@ -1,6 +1,7 @@
 package tower_climber;
 
 import de.kostari.cloud.core.objects.GameObject;
+import de.kostari.cloud.core.lighting.Light2D;
 import de.kostari.cloud.core.physics.AABB;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.render.Render;
@@ -17,6 +18,7 @@ public final class WeaponProjectile extends GameObject {
     private int hitsRemaining;
     private float age;
     private float rotation;
+    private final Light2D light;
 
     public WeaponProjectile(Weapon weapon, float x, float y,
             float directionX, float directionY, float angleOffset) {
@@ -30,6 +32,13 @@ public final class WeaponProjectile extends GameObject {
         rotation = (float) Math.toDegrees(angle);
         transform.position.set(x + (float) Math.cos(angle) * 34,
                 y + (float) Math.sin(angle) * 34);
+        Color4f lightColor = weapon == Weapon.BOW
+                ? new Color4f(0.42f, 0.9f, 1f, 1)
+                : new Color4f(0.82f, 0.4f, 1f, 1);
+        light = addComponent(new Light2D(weapon == Weapon.BOW ? 125 : 92, lightColor)
+                .intensity(weapon == Weapon.BOW ? 1.25f : 0.8f)
+                .falloff(2f)
+                .castsShadows(false));
     }
 
     @Override
@@ -41,6 +50,7 @@ public final class WeaponProjectile extends GameObject {
             rotation += delta * 960;
         }
         if (age >= lifetime) {
+            light.enabled(false);
             destroy();
         }
         super.update();
@@ -84,6 +94,7 @@ public final class WeaponProjectile extends GameObject {
     public boolean consumeHit() {
         hitsRemaining--;
         if (hitsRemaining <= 0) {
+            light.enabled(false);
             destroy();
             return true;
         }

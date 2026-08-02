@@ -8,15 +8,16 @@ import de.kostari.cloud.core.window.Window;
 
 public class Canvas extends Panel {
 
-    public static final float AUTO = Style.AUTO;
+    public static final float AUTO = Layout.AUTO;
     public static final float FILL = -2f;
 
     private final Map<UIElement, CanvasSlot> slots = new IdentityHashMap<>();
-
     private float x;
     private float y;
     private float width = FILL;
     private float height = FILL;
+    private float lastWidth = -1;
+    private float lastHeight = -1;
     private boolean disposed;
 
     public Canvas() {
@@ -36,6 +37,7 @@ public class Canvas extends Panel {
         this.y = y;
         this.width = width;
         this.height = height;
+        invalidateLayout();
         return this;
     }
 
@@ -52,32 +54,28 @@ public class Canvas extends Panel {
         return this;
     }
 
-    public Canvas add(UIElement element, float x, float y, float width, float height) {
-        add(element);
-        return setBounds(element, x, y, width, height);
-    }
-
     @Override
     public Canvas append(UIElement... elements) {
         return add(elements);
     }
 
     public Canvas append(UIElement element, float x, float y, float width, float height) {
-        return add(element, x, y, width, height);
+        add(element);
+        return setBounds(element, x, y, width, height);
     }
 
     public Canvas setBounds(UIElement element, float x, float y, float width, float height) {
         if (element != null) {
             slots.put(element, new CanvasSlot(x, y, width, height));
+            invalidateLayout();
         }
         return this;
     }
 
+    @Override
     public Canvas remove(UIElement element) {
-        if (element != null) {
-            super.remove(element);
-            slots.remove(element);
-        }
+        super.remove(element);
+        slots.remove(element);
         return this;
     }
 
@@ -85,7 +83,6 @@ public class Canvas extends Panel {
         if (disposed) {
             return;
         }
-
         disposed = true;
         UI.unregisterCanvas(this);
         if (SceneManager.hasScene()) {
@@ -101,32 +98,39 @@ public class Canvas extends Panel {
         if (disposed || !isVisible()) {
             return;
         }
-
         float resolvedWidth = resolve(width, Window.get().getWidth() - x, preferredWidth());
-        float resolvedHeight = resolve(height, Window.get().getHeight() - y, preferredHeight());
-        layout(x, y, resolvedWidth, resolvedHeight);
-        drawTree();
+        float resolvedHeight = resolve(height, Window.get().getHeight() - y, preferredHeight(resolvedWidth));
+        if (isLayoutDirty() || resolvedWidth != lastWidth || resolvedHeight != lastHeight) {
+            measure(UIConstraints.tight(resolvedWidth, resolvedHeight));
+            arrange(new UIRect(x, y, resolvedWidth, resolvedHeight));
+            lastWidth = resolvedWidth;
+            lastHeight = resolvedHeight;
+        }
+        drawTree(0, 0, 1);
     }
 
     @Override
-    protected void layoutChildren(float x, float y, float width, float height) {
+    protected void arrangeChildren(UIRect area) {
         for (UIElement child : children()) {
             if (!child.isVisible()) {
                 continue;
             }
-
             CanvasSlot slot = slots.getOrDefault(child, new CanvasSlot(0, 0, FILL, FILL));
-            Spacing margin = child.style().margin();
-            float availableWidth = Math.max(0, width - slot.x);
-            float availableHeight = Math.max(0, height - slot.y);
-            float childWidth = resolve(slot.width, availableWidth, child.preferredWidth());
-            float childHeight = resolve(slot.height, availableHeight, child.outerPreferredHeight(childWidth));
-
-            child.layout(
-                    x + slot.x + margin.left,
-                    y + slot.y + margin.top,
-                    Math.max(0, childWidth - margin.horizontal()),
-                    Math.max(0, childHeight - margin.vertical()));
+            Insets margin = child.layout().margin();
+            float availableWidth = Math.max(0, area.width - slot.x - margin.horizontal());
+            float availableHeight = Math.max(0, area.height - slot.y - margin.vertical());
+            float childWidth = slot.width == FILL ? availableWidth
+                    : slot.width == AUTO ? child.measure(UIConstraints.loose(availableWidth, availableHeight)).width()
+                            : Math.max(0, slot.width - margin.horizontal());
+            UISize desired = child.measure(UIConstraints.loose(childWidth, availableHeight));
+            float childHeight = slot.height == FILL ? availableHeight
+                    : slot.height == AUTO ? desired.height()
+                            : Math.max(0, slot.height - margin.vertical());
+            child.arrange(new UIRect(
+                    area.x + slot.x + margin.left(),
+                    area.y + slot.y + margin.top(),
+                    childWidth,
+                    childHeight));
         }
     }
 

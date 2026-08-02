@@ -1,6 +1,7 @@
 package drawing_stuff;
 
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Absolute;
 import de.kostari.cloud.core.ui.Button;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Flex;
@@ -12,6 +13,7 @@ import de.kostari.cloud.core.ui.TextAlign;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.window.Window;
+import demo_ui.DemoUI;
 
 public class MyScene extends Scene {
 
@@ -24,17 +26,17 @@ public class MyScene extends Scene {
     public void init() {
         canvas = new Canvas();
         uiDemo = new Flex(FlexDirection.COLUMN);
-        uiDemo.style().css(
-                "padding: 16px; gap: 12px; background: #101827dd; border: 1px solid #ffffff33; color: white;");
+        uiDemo.layout().padding(16);
+        uiDemo.gap(12).background(DemoUI.surface(DemoUI.VIOLET, 13));
 
         Text title = new Text("UI System");
-        title.style().css("font-scale: 1.4; color: white; shadow-depth: 2px;");
+        title.fontScale(1.4f).color(Colors.hex("#ffffff")).shadow(2);
 
         Text subtitle = new Text("Flex, Grid, Text, Button and Panel");
-        subtitle.style().css("color: #c7d2fe; shadow-depth: 1px;");
+        subtitle.color(Colors.hex("#c7d2fe")).shadow(1);
 
         Grid swatches = new Grid(3);
-        swatches.style().css("gap: 8px; row-height: 52px;");
+        swatches.gap(8).rowHeight(52);
         swatches.add(
                 swatch("#ef4444"),
                 swatch("#f59e0b"),
@@ -43,17 +45,21 @@ public class MyScene extends Scene {
                 swatch("#6366f1"),
                 swatch("#ec4899"));
 
-        Button button = new Button("Click me").onClick(() -> {
+        Button button = DemoUI.button("Click me", DemoUI.VIOLET, () -> {
             buttonClicks++;
             buttonStatus.text("Button clicks: " + buttonClicks);
         });
-        button.style().css("width: 150px;");
+        button.layout().width(150);
 
         buttonStatus = new Text("Button clicks: 0");
-        buttonStatus.style().textAlign(TextAlign.CENTER).css("padding: 6px; background: #00000033;");
+        buttonStatus.layout().padding(6);
+        buttonStatus.align(TextAlign.CENTER).background(Colors.hex("#00000033"));
 
         uiDemo.add(title, subtitle, swatches, button, buttonStatus);
-        canvas.append(uiDemo, Window.get().getWidth() - 392, 24, 368, Canvas.AUTO);
+        Absolute overlay = new Absolute();
+        overlay.add(uiDemo);
+        overlay.position(uiDemo).right(24).top(24).width(368);
+        canvas.add(overlay);
         super.init();
     }
 
@@ -75,7 +81,8 @@ public class MyScene extends Scene {
 
     private Panel swatch(String color) {
         Panel panel = new Panel();
-        panel.style().css("height: 52px; background: " + color + "; border: 1px solid #ffffff55;");
+        panel.layout().height(52);
+        panel.background(Colors.hex(color)).border(1, Colors.hex("#ffffff55"));
         return panel;
     }
 

@@ -1,16 +1,19 @@
 package custom_shader;
 
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Absolute;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Flex;
 import de.kostari.cloud.core.ui.FlexDirection;
 import de.kostari.cloud.core.ui.Text;
+import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.input.Keys;
 import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.utils.types.Color4f;
 import de.kostari.cloud.core.window.Input;
 import de.kostari.cloud.core.window.Time;
 import de.kostari.cloud.core.window.Window;
+import demo_ui.DemoUI;
 
 public class ShaderDemoScene extends Scene {
 
@@ -108,12 +111,13 @@ public class ShaderDemoScene extends Scene {
 
     private void createHud() {
         Canvas canvas = new Canvas();
+        Absolute overlay = new Absolute();
         Flex hud = new Flex(FlexDirection.COLUMN);
-        hud.style().css(
-                "padding: 16px; gap: 9px; background: #07101ee8; border: 1px solid #67e8f966; color: white;");
+        hud.layout().padding(16);
+        hud.gap(9).background(DemoUI.surface(DemoUI.CYAN, 12));
 
         Text title = new Text("CUSTOM SHADER LAB");
-        title.style().css("font-scale: 1.25; color: #67e8f9; shadow-depth: 2px;");
+        title.fontScale(1.25f).color(Colors.hex("#67e8f9")).shadow(2);
 
         Text help = new Text(
                 "Move mouse   Move effect\n"
@@ -122,12 +126,15 @@ public class ShaderDemoScene extends Scene {
                         + "Arrow keys   Change strength\n"
                         + "Space        Toggle shader\n"
                         + "R            Reset");
-        help.style().css("color: #dbeafe; line-height: 1.25; shadow-depth: 1px;");
+        help.color(Colors.hex("#dbeafe")).lineHeight(1.25f).shadow(1);
 
         status = new Text("");
-        status.style().css("padding: 9px; background: #0e749055; color: #a5f3fc; line-height: 1.2;");
+        status.layout().padding(9);
+        status.background(Colors.hex("#0e749055")).color(Colors.hex("#a5f3fc")).lineHeight(1.2f);
 
         hud.add(title, help, status);
-        canvas.append(hud, 18, 18, 500, Canvas.AUTO);
+        overlay.add(hud);
+        overlay.position(hud).left(18).top(18).width(500);
+        canvas.add(overlay);
     }
 }

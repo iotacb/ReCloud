@@ -67,9 +67,10 @@
 ## UI
 
 - `Canvas` is a retained screen-space root rendered after post-processing. `Canvas.AUTO` sizes to content; `Canvas.FILL` fills remaining space.
-- `Panel` groups and paints; `Flex` lays out rows/columns; `Grid` uses fixed columns; `Text` wraps and updates via `text(...)`; `Button` provides hover/press and `onClick`.
-- Every `UIElement` exposes `style`, children, visibility, bounds, and preferred sizes.
-- Style fluently or with `css(...)`: size/min/max, grow, padding, margin, gap, grid columns/row height, background/hover/active colors, border, text color/font/scale/line height/shadow, alignment, and justification.
+- `Panel` groups and paints; `Flex` lays out rows/columns; `Grid` uses equal fixed columns; `Absolute` anchors overlay children; `Text` wraps and updates via `text(...)`.
+- `Button`, `TextBox`, and `Slider` are composed controls. Their primitive panels and text elements are publicly accessible for custom skins.
+- Every `UIElement` exposes typed `layout()` properties, children, visibility, clipping, translation, opacity, bounds, measurement, and arrangement. Flex/grid configuration uses typed methods such as `gap`, `align`, and `justify`; there is no CSS parser.
+- Panels accept solid, gradient, texture, nine-slice, layered, or shader-backed `UIMaterial` drawables. `UIMaterial` supports rounded SDF corners, borders, glow, pulse, and animated sheen.
 - Use `UI.setDefaultFont(...)` in standalone games. Canvases automatically register with the active scene and are disposed during scene disposal.
 
 ## Particles

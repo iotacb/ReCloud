@@ -2,10 +2,13 @@ package de.kostari.cloud.core.utils.render.font;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.stb.STBTTBakedChar;
+import org.lwjgl.stb.STBTTFontinfo;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -20,6 +23,11 @@ public class Font {
     private STBTTBakedChar.Buffer charData;
     private ByteBuffer bitmap;
 
+    private float ascent;
+    private float descent;
+    private float lineGap;
+    private float lineHeight;
+
     private int textureId;
 
     public Font(String fontPath, int fontHeight) {
@@ -28,6 +36,8 @@ public class Font {
             byte[] fontBytes = Files.readAllBytes(Paths.get(fontPath));
             fontBuffer = MemoryUtil.memAlloc(fontBytes.length);
             fontBuffer.put(fontBytes).flip();
+
+            readVerticalMetrics();
 
             charData = STBTTBakedChar.malloc(96); // ASCII 32..126 is 95 glyphs
             ByteBuffer tempBitmap = MemoryUtil.memAlloc(BITMAP_W * BITMAP_H);
@@ -48,6 +58,35 @@ public class Font {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void readVerticalMetrics() {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            STBTTFontinfo fontInfo = STBTTFontinfo.malloc(stack);
+            int fontOffset = stbtt_GetFontOffsetForIndex(fontBuffer, 0);
+            if (fontOffset < 0 || !stbtt_InitFont(fontInfo, fontBuffer, fontOffset)) {
+                useFallbackVerticalMetrics();
+                return;
+            }
+
+            IntBuffer rawAscent = stack.mallocInt(1);
+            IntBuffer rawDescent = stack.mallocInt(1);
+            IntBuffer rawLineGap = stack.mallocInt(1);
+            stbtt_GetFontVMetrics(fontInfo, rawAscent, rawDescent, rawLineGap);
+
+            float scale = stbtt_ScaleForPixelHeight(fontInfo, fontHeight);
+            ascent = rawAscent.get(0) * scale;
+            descent = -rawDescent.get(0) * scale;
+            lineGap = Math.max(0, rawLineGap.get(0) * scale);
+            lineHeight = Math.max(1, ascent + descent + lineGap);
+        }
+    }
+
+    private void useFallbackVerticalMetrics() {
+        lineHeight = Math.max(1, fontHeight);
+        ascent = lineHeight * 0.8f;
+        descent = lineHeight - ascent;
+        lineGap = 0;
     }
 
     public Font load() {
@@ -80,6 +119,25 @@ public class Font {
 
     public int getFontHeight() {
         return fontHeight;
+    }
+
+    /** Distance from the top of a line box to its baseline, in unscaled pixels. */
+    public float getAscent() {
+        return ascent;
+    }
+
+    /** Positive distance below the baseline, in unscaled pixels. */
+    public float getDescent() {
+        return descent;
+    }
+
+    public float getLineGap() {
+        return lineGap;
+    }
+
+    /** Typographic line box height: ascent + descent + line gap. */
+    public float getLineHeight() {
+        return lineHeight;
     }
 
     public int getTextureId() {

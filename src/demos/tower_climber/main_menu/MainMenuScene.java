@@ -6,12 +6,14 @@ import de.kostari.cloud.core.scene.Scene;
 import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.ui.AlignItems;
 import de.kostari.cloud.core.ui.Button;
+import de.kostari.cloud.core.ui.ButtonSkin;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Flex;
 import de.kostari.cloud.core.ui.FlexDirection;
 import de.kostari.cloud.core.ui.JustifyContent;
 import de.kostari.cloud.core.ui.Panel;
 import de.kostari.cloud.core.ui.Text;
+import de.kostari.cloud.core.ui.UIMaterial;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.audio.Audio;
 import de.kostari.cloud.core.utils.render.Render;
@@ -24,6 +26,7 @@ import tower_climber.GameScene;
 import tower_climber.HighScores;
 import tower_climber.Enemy;
 import tower_climber.TowerSprites;
+import demo_ui.DemoUI;
 
 public class MainMenuScene extends Scene {
 
@@ -109,46 +112,49 @@ public class MainMenuScene extends Scene {
         canvas = new Canvas();
 
         menuCard = new Panel();
-        menuCard.style().css(
-                "padding: 32px 36px; background: #071525ed; border: 1px solid #5be7d36b;");
+        menuCard.layout().padding(32, 36);
+        menuCard.background(DemoUI.surface(DemoUI.CYAN, 16));
 
         Flex content = new Flex(FlexDirection.COLUMN);
-        content.style()
-                .alignItems(AlignItems.STRETCH)
-                .justifyContent(JustifyContent.CENTER)
-                .gap(15);
+        content.align(AlignItems.STRETCH).justify(JustifyContent.CENTER).gap(15);
 
         Text eyebrow = new Text("A RECLOUD ASCENT  /  01");
-        eyebrow.style().css(
-                "font-scale: 0.42; color: #5be7d3; text-align: center; shadow-depth: 1px;");
+        eyebrow.fontScale(0.42f).color(Colors.hex("#5be7d3")).align(de.kostari.cloud.core.ui.TextAlign.CENTER).shadow(1);
 
         Text title = new Text("TOWER\nCLIMBER");
-        title.style().css(
-                "font-scale: 1.85; line-height: 0.9; color: #f3f7f4; text-align: center; shadow-depth: 4px; shadow-color: #000000aa;");
+        title.fontScale(1.85f).lineHeight(0.9f).color(Colors.hex("#f3f7f4"))
+                .align(de.kostari.cloud.core.ui.TextAlign.CENTER).shadow(4, Colors.hex("#000000aa"));
 
         Text tagline = new Text("THE ONLY WAY OUT IS UP");
-        tagline.style().css(
-                "font-scale: 0.48; color: #a7c4c2; text-align: center; shadow-depth: 1px;");
+        tagline.fontScale(0.48f).color(Colors.hex("#a7c4c2"))
+                .align(de.kostari.cloud.core.ui.TextAlign.CENTER).shadow(1);
 
         Panel accent = new Panel();
-        accent.style().css("height: 3px; margin: 5px 74px; background: #ff7050;");
+        accent.layout().height(3).margin(5, 74);
+        accent.background(DemoUI.meterFill(DemoUI.RED));
 
         buttonPlay = new Button("START CLIMB").onClick(this::startGame);
-        buttonPlay.style().css(
-                "height: 54px; padding: 14px; font-scale: 0.65; background: #e85f43; hover-background: #ff7959; active-background: #c64933; border: 1px solid #ffb29a; color: white; shadow-depth: 2px;");
+        buttonPlay.layout().height(54);
+        buttonPlay.panel().layout().padding(14);
+        buttonPlay.fontScale(0.65f).skin(buttonSkin("#e85f43", "#ff7959", "#c64933", "#ffb29a", "#ffffff"));
+        buttonPlay.textElement().shadow(2);
 
         buttonExit = new Button("EXIT TO DESKTOP").onClick(() -> Window.get().close());
-        buttonExit.style().css(
-                "height: 48px; padding: 12px; font-scale: 0.55; background: #10293a; hover-background: #183d50; active-background: #0a1b28; border: 1px solid #5b8b9466; color: #c7d9d8;");
+        buttonExit.layout().height(48);
+        buttonExit.panel().layout().padding(12);
+        buttonExit.fontScale(0.55f).skin(buttonSkin("#10293a", "#183d50", "#0a1b28", "#5b8b9466", "#c7d9d8"));
 
         Flex stats = new Flex(FlexDirection.ROW);
-        stats.style().css("justify-content: space-between; margin: 5px 1px 0px 1px;");
+        stats.justify(JustifyContent.SPACE_BETWEEN);
+        stats.layout().margin(5, 1, 0, 1);
 
         bestScore = new Text("BEST  " + HighScores.load() + " PTS");
-        bestScore.style().css("padding: 6px 8px; font-scale: 0.38; color: #ffd782; background: #201b1be0; border: 1px solid #ffb85a55;");
+        bestScore.layout().padding(6, 8);
+        bestScore.fontScale(0.38f).color(Colors.hex("#ffd782"))
+                .background(DemoUI.surface(DemoUI.GOLD, 7));
 
         Text mode = new Text("SEEDED  /  ENDLESS");
-        mode.style().css("font-scale: 0.38; color: #668c8e; text-align: end;");
+        mode.fontScale(0.38f).color(Colors.hex("#668c8e")).align(de.kostari.cloud.core.ui.TextAlign.END);
 
         stats.add(bestScore, mode);
         content.add(eyebrow, title, tagline, accent, buttonPlay, buttonExit, stats);
@@ -156,35 +162,38 @@ public class MainMenuScene extends Scene {
         canvas.append(menuCard, 88, 80, 438, 560);
 
         briefingCard = new Panel();
-        briefingCard.style().css(
-                "padding: 18px 20px; background: #071525e6; border: 1px solid #5be7d34f;");
+        briefingCard.layout().padding(18, 20);
+        briefingCard.background(DemoUI.surface(DemoUI.CYAN, 12));
         Flex briefingContent = new Flex(FlexDirection.COLUMN);
-        briefingContent.style().css("gap: 9px; align-items: stretch;");
+        briefingContent.gap(9).align(AlignItems.STRETCH);
         Text briefingTitle = new Text("RUN BRIEFING  //  SURVIVE THE ASCENT");
-        briefingTitle.style().css("font-scale: 0.4; color: #8ff8e6; shadow-depth: 1px;");
+        briefingTitle.fontScale(0.4f).color(Colors.hex("#8ff8e6")).shadow(1);
         Text briefingControls = new Text(
                 "A D / ARROWS   MOVE      SPACE / W   JUMP / SLINGSHOT\n"
                         + "MOUSE   AIM 360      CLICK   ATTACK      SHIFT   DASH\n"
                         + "1 2 3   WEAPONS      RMB / F   NOVA      U   UPGRADES");
-        briefingControls.style().css("font-scale: 0.31; line-height: 1.45; color: #a7c4c2;");
+        briefingControls.fontScale(0.31f).lineHeight(1.45f).color(Colors.hex("#a7c4c2"));
         Panel briefingRule = new Panel();
-        briefingRule.style().css("height: 2px; background: #5be7d344;");
+        briefingRule.layout().height(2);
+        briefingRule.background(DemoUI.meterFill(DemoUI.CYAN));
         Text legend = new Text(
                 "PURPLE   RISK ROUTE     GOLD   GRAVITY SLINGSHOT\n"
                         + "VIOLET SHARDS   AETHER     ORANGE   RECOVERY     RED   VENT");
-        legend.style().css("font-scale: 0.3; line-height: 1.42; color: #d7e7e4;");
+        legend.fontScale(0.3f).lineHeight(1.42f).color(Colors.hex("#d7e7e4"));
         briefingContent.add(briefingTitle, briefingControls, briefingRule, legend);
         briefingCard.add(briefingContent);
         canvas.append(briefingCard, 0, 0, 350, Canvas.AUTO);
 
         transitionShade = new Panel();
-        transitionShade.style().background(new Color4f(2 / 255f, 7 / 255f, 17 / 255f, 0));
+        transitionShade.background(new Color4f(2 / 255f, 7 / 255f, 17 / 255f, 0));
         transitionShade.visible(false);
         canvas.append(transitionShade, 0, 0, Canvas.FILL, Canvas.FILL);
 
         transitionText = new Text("ENTERING THE TOWER\nPREPARE TO ASCEND");
-        transitionText.style().css(
-                "padding: 18px 24px; font-scale: 0.62; line-height: 1.2; color: #8ff8e600; text-align: center; background: #07152500; border: 1px solid #5be7d300; shadow-depth: 2px;");
+        transitionText.layout().padding(18, 24);
+        transitionText.fontScale(0.62f).lineHeight(1.2f).color(Colors.hex("#8ff8e600"))
+                .align(de.kostari.cloud.core.ui.TextAlign.CENTER).background(Colors.hex("#07152500"))
+                .border(1, Colors.hex("#5be7d300")).shadow(2);
         transitionText.visible(false);
         canvas.append(transitionText, 0, 0, 420, Canvas.AUTO);
     }
@@ -233,12 +242,29 @@ public class MainMenuScene extends Scene {
     private void updateStartTransition() {
         float progress = 1 - Math.max(0, startDelay) / START_TRANSITION_DURATION;
         float eased = progress * progress * (3 - 2 * progress);
-        transitionShade.style().background(new Color4f(2 / 255f, 7 / 255f, 17 / 255f,
+        transitionShade.background(new Color4f(2 / 255f, 7 / 255f, 17 / 255f,
                 Math.min(0.96f, eased * 1.08f)));
-        transitionText.style()
-                .color(new Color4f(0.56f, 0.97f, 0.9f, Math.min(1, progress * 2.5f)))
+        transitionText.color(new Color4f(0.56f, 0.97f, 0.9f, Math.min(1, progress * 2.5f)))
                 .background(new Color4f(7 / 255f, 21 / 255f, 37 / 255f, eased * 0.9f))
                 .borderColor(new Color4f(91 / 255f, 231 / 255f, 211 / 255f, eased * 0.65f));
+    }
+
+    private ButtonSkin buttonSkin(String normal, String hovered, String pressed, String border, String text) {
+        Color4f accent = Colors.hex(border);
+        UIMaterial normalMaterial = buttonMaterial(normal, accent, 0.14f);
+        UIMaterial hoverMaterial = buttonMaterial(hovered, accent, 0.4f)
+                .sheen(Colors.hex("#ffffffaa"), 0.16f, 0.38f, 0.68f);
+        UIMaterial pressedMaterial = buttonMaterial(pressed, accent, 0.45f);
+        UIMaterial disabledMaterial = new UIMaterial().fill(Colors.hex("#121923cc"))
+                .border(1, Colors.hex("#8aa0b333")).radius(9);
+        Color4f textColor = Colors.hex(text);
+        return new ButtonSkin(normalMaterial, hoverMaterial, pressedMaterial, hoverMaterial, disabledMaterial,
+                textColor, textColor, textColor, Colors.hex("#718090"));
+    }
+
+    private UIMaterial buttonMaterial(String fill, Color4f accent, float glow) {
+        return new UIMaterial().fill(Colors.hex(fill)).border(1, accent).radius(9)
+                .glow(accent, 10, glow);
     }
 
     private void drawBackdrop() {

@@ -42,4 +42,15 @@ public class UIRect {
     public UIRect copy() {
         return new UIRect(this);
     }
+
+    public UIRect intersection(UIRect other) {
+        if (other == null) {
+            return copy();
+        }
+        float left = Math.max(x, other.x);
+        float top = Math.max(y, other.y);
+        float right = Math.min(right(), other.right());
+        float bottom = Math.min(bottom(), other.bottom());
+        return new UIRect(left, top, Math.max(0, right - left), Math.max(0, bottom - top));
+    }
 }

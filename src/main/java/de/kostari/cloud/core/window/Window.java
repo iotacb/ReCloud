@@ -110,6 +110,8 @@ public class Window {
             WindowEvents.onKeyType.call(key, action);
         });
 
+        GLFW.glfwSetCharCallback(windowId, (id, codepoint) -> Input.listenCharacter(codepoint));
+
         GLFW.glfwSetCursorPosCallback(windowId, (id, x, y) -> {
             Input.mouseX = (int) x;
             Input.mouseY = (int) y;
@@ -222,6 +224,7 @@ public class Window {
     }
 
     private void destroy() {
+        UI.cleanup();
         Render.cleanup();
         Callbacks.glfwFreeCallbacks(windowId);
         GLFW.glfwDestroyWindow(windowId);

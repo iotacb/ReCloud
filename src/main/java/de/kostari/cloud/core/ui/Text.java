@@ -10,13 +10,30 @@ import de.kostari.cloud.core.utils.types.Color4f;
 public class Text extends UIElement {
 
     private String text;
+    private Font font;
+    private Color4f color = new Color4f(1, 1, 1, 1);
+    private Color4f shadowColor = new Color4f(0, 0, 0, 0.65f);
+    private float fontScale = 1;
+    private float lineHeight = 1.18f;
+    private float shadowDepth;
+    private boolean wrap = true;
+    private TextAlign textAlign = TextAlign.START;
+    private AlignItems verticalAlign = AlignItems.START;
+    private Drawable background = Drawables.none();
+    private Drawable border = Drawables.none();
+    private float borderWidth;
+    private Color4f borderColor = new Color4f(0, 0, 0, 0);
 
     public Text(String text) {
         this.text = text == null ? "" : text;
     }
 
-    public Text text(String text) {
-        this.text = text == null ? "" : text;
+    public Text text(String value) {
+        String safe = value == null ? "" : value;
+        if (!text.equals(safe)) {
+            text = safe;
+            invalidateLayout();
+        }
         return this;
     }
 
@@ -24,85 +41,142 @@ public class Text extends UIElement {
         return text;
     }
 
+    public Text font(Font value) {
+        font = value;
+        invalidateLayout();
+        return this;
+    }
+
+    public Font font() {
+        return font == null ? UI.defaultFont() : font;
+    }
+
+    public Text color(Color4f value) {
+        color = value == null ? new Color4f(1, 1, 1, 1) : value;
+        invalidatePaint();
+        return this;
+    }
+
+    public Color4f color() {
+        return color;
+    }
+
+    public Text fontScale(float value) {
+        fontScale = Math.max(0.01f, value);
+        invalidateLayout();
+        return this;
+    }
+
+    public float fontScale() {
+        return fontScale;
+    }
+
+    public Text lineHeight(float value) {
+        lineHeight = value <= 0 ? 1.18f : value;
+        invalidateLayout();
+        return this;
+    }
+
+    public Text wrap(boolean value) {
+        wrap = value;
+        invalidateLayout();
+        return this;
+    }
+
+    public Text align(TextAlign value) {
+        textAlign = value == null ? TextAlign.START : value;
+        invalidatePaint();
+        return this;
+    }
+
+    public Text verticalAlign(AlignItems value) {
+        verticalAlign = value == null ? AlignItems.START : value;
+        invalidatePaint();
+        return this;
+    }
+
+    public Text shadow(float depth, Color4f value) {
+        shadowDepth = Math.max(0, depth);
+        shadowColor = value == null ? new Color4f(0, 0, 0, 0) : value;
+        invalidateLayout();
+        return this;
+    }
+
+    public Text shadow(float depth) {
+        return shadow(depth, new Color4f(0, 0, 0, 0.65f));
+    }
+
+    public Text background(Color4f value) {
+        background = Drawables.solid(value);
+        invalidatePaint();
+        return this;
+    }
+
+    public Text background(Drawable value) {
+        background = value == null ? Drawables.none() : value;
+        invalidatePaint();
+        return this;
+    }
+
+    public Text border(float width, Color4f value) {
+        borderWidth = Math.max(0, width);
+        borderColor = value == null ? new Color4f(0, 0, 0, 0) : value;
+        border = Drawables.border(borderWidth, borderColor);
+        invalidatePaint();
+        return this;
+    }
+
+    public Text borderColor(Color4f value) {
+        return border(borderWidth, value);
+    }
+
+    @Override
+    protected UISize measureContent(UIConstraints constraints) {
+        Font activeFont = font();
+        if (activeFont == null || text.isEmpty()) {
+            return UISize.ZERO;
+        }
+
+        float naturalWidth = 0;
+        for (String line : logicalLines()) {
+            naturalWidth = Math.max(naturalWidth, Render.getTextWidth(activeFont, line, fontScale));
+        }
+        float width = Float.isFinite(constraints.maxWidth())
+                ? Math.min(naturalWidth + shadowDepth, constraints.maxWidth())
+                : naturalWidth + shadowDepth;
+        List<String> measuredLines = lines(width);
+        float height = lineAdvance(activeFont) * measuredLines.size() + shadowDepth;
+        return new UISize(width, height);
+    }
+
     @Override
     protected void drawSelf() {
-        paintBox();
-
-        Font font = font();
-        if (text.isEmpty() || font == null) {
+        background.draw(renderBounds(), renderOpacity());
+        border.draw(renderBounds(), renderOpacity());
+        Font activeFont = font();
+        if (activeFont == null || text.isEmpty()) {
             return;
         }
 
-        float scale = style().fontScale();
-        List<String> lines = lines(contentBounds.width);
-        float lineHeight = lineHeight(font, scale);
-        float totalHeight = lineHeight * lines.size();
-        float y = contentBounds.y + verticalOffset(totalHeight);
+        UIRect area = renderContentBounds();
+        List<String> renderedLines = lines(area.width);
+        float naturalLineHeight = Render.getTextHeight(activeFont) * fontScale;
+        float lineAdvance = lineAdvance(activeFont);
+        float totalHeight = lineAdvance * renderedLines.size() + shadowDepth;
+        float leading = lineAdvance - naturalLineHeight;
+        float y = area.y + verticalOffset(area.height, totalHeight) + leading * 0.5f;
+        Color4f textColor = Drawables.alpha(color, renderOpacity());
+        Color4f renderedShadow = Drawables.alpha(shadowColor, renderOpacity());
 
-        for (String line : lines) {
-            float lineWidth = Render.getTextWidth(font, line, scale);
-            float x = contentBounds.x + horizontalOffset(lineWidth);
-            drawLine(font, line, x, y, scale);
-            y += lineHeight;
+        for (String line : renderedLines) {
+            float lineWidth = Render.getTextWidth(activeFont, line, fontScale);
+            float x = area.x + horizontalOffset(area.width, lineWidth);
+            if (shadowDepth > 0 && renderedShadow.a > 0) {
+                Render.drawText(activeFont, line, x + shadowDepth, y + shadowDepth, fontScale, renderedShadow);
+            }
+            Render.drawText(activeFont, line, x, y, fontScale, textColor);
+            y += lineAdvance;
         }
-    }
-
-    @Override
-    protected float preferredInnerWidth() {
-        Font font = font();
-        if (font == null || text.isEmpty()) {
-            return 0;
-        }
-
-        float width = 0;
-        float scale = style().fontScale();
-        for (String line : logicalLines()) {
-            width = Math.max(width, Render.getTextWidth(font, line, scale));
-        }
-        return width + style().shadowDepth();
-    }
-
-    @Override
-    protected float preferredInnerHeight() {
-        Font font = font();
-        if (font == null || text.isEmpty()) {
-            return 0;
-        }
-        return lineHeight(font, style().fontScale()) * logicalLines().length + style().shadowDepth();
-    }
-
-    @Override
-    protected float preferredInnerHeight(float availableWidth) {
-        Font font = font();
-        if (font == null || text.isEmpty()) {
-            return 0;
-        }
-        return lineHeight(font, style().fontScale()) * lines(availableWidth).size() + style().shadowDepth();
-    }
-
-    private void drawLine(Font font, String line, float x, float y, float scale) {
-        Color4f shadowColor = style().shadowColor();
-        float shadowDepth = style().shadowDepth();
-        if (shadowDepth > 0 && shadowColor != null && shadowColor.a > 0) {
-            Render.drawText(font, line, x + shadowDepth, y + shadowDepth, scale, shadowColor);
-        }
-        Render.drawText(font, line, x, y, scale, style().color());
-    }
-
-    private float horizontalOffset(float lineWidth) {
-        return switch (style().textAlign()) {
-            case CENTER -> Math.max(0, contentBounds.width - lineWidth) * 0.5f;
-            case END -> Math.max(0, contentBounds.width - lineWidth);
-            default -> 0;
-        };
-    }
-
-    private float verticalOffset(float textHeight) {
-        return switch (style().alignItems()) {
-            case CENTER -> Math.max(0, contentBounds.height - textHeight) * 0.5f;
-            case END -> Math.max(0, contentBounds.height - textHeight);
-            default -> 0;
-        };
     }
 
     private String[] logicalLines() {
@@ -110,21 +184,20 @@ public class Text extends UIElement {
     }
 
     private List<String> lines(float availableWidth) {
-        String[] logicalLines = logicalLines();
-        List<String> wrappedLines = new ArrayList<>(logicalLines.length);
-        Font font = font();
-        float scale = style().fontScale();
-        float lineWidth = Math.max(0, availableWidth - style().shadowDepth());
-
-        for (String line : logicalLines) {
-            wrapLine(line, lineWidth, font, scale, wrappedLines);
+        String[] logical = logicalLines();
+        List<String> result = new ArrayList<>(logical.length);
+        Font activeFont = font();
+        float lineWidth = Math.max(0, availableWidth - shadowDepth);
+        for (String line : logical) {
+            wrapLine(line, lineWidth, activeFont, result);
         }
-        return wrappedLines;
+        return result;
     }
 
-    private void wrapLine(String line, float availableWidth, Font font, float scale, List<String> wrappedLines) {
-        if (line.isEmpty() || availableWidth <= 0 || Render.getTextWidth(font, line, scale) <= availableWidth) {
-            wrappedLines.add(line);
+    private void wrapLine(String line, float availableWidth, Font activeFont, List<String> output) {
+        if (!wrap || line.isEmpty() || !Float.isFinite(availableWidth) || availableWidth <= 0
+                || Render.getTextWidth(activeFont, line, fontScale) <= availableWidth) {
+            output.add(line);
             return;
         }
 
@@ -133,10 +206,9 @@ public class Text extends UIElement {
             float width = 0;
             int lastWhitespace = -1;
             int cursor = start;
-
             while (cursor < line.length()) {
                 char character = line.charAt(cursor);
-                width += characterWidth(font, character, scale);
+                width += characterWidth(activeFont, character);
                 if (Character.isWhitespace(character)) {
                     lastWhitespace = cursor;
                 }
@@ -147,12 +219,12 @@ public class Text extends UIElement {
             }
 
             if (cursor == line.length()) {
-                wrappedLines.add(line.substring(start));
+                output.add(line.substring(start));
                 return;
             }
 
             int end = lastWhitespace >= start ? lastWhitespace : Math.max(start + 1, cursor);
-            wrappedLines.add(line.substring(start, end).stripTrailing());
+            output.add(line.substring(start, end).stripTrailing());
             start = lastWhitespace >= start ? lastWhitespace + 1 : end;
             while (start < line.length() && Character.isWhitespace(line.charAt(start))) {
                 start++;
@@ -160,23 +232,31 @@ public class Text extends UIElement {
         }
     }
 
-    private float characterWidth(Font font, char character, float scale) {
+    private float characterWidth(Font activeFont, char character) {
         if (character < 32 || character >= 128) {
             return 0;
         }
-        return font.getCharData().get(character - 32).xadvance() * scale;
+        return activeFont.getCharData().get(character - 32).xadvance() * fontScale;
     }
 
-    private Font font() {
-        return style().font() == null ? UI.defaultFont() : style().font();
+    private float lineAdvance(Font activeFont) {
+        float base = Math.max(1, Render.getTextHeight(activeFont) * fontScale);
+        return base * lineHeight;
     }
 
-    private float lineHeight(Font font, float scale) {
-        float baseHeight = Math.max(1, Render.getTextHeight(font) * scale);
-        float configuredLineHeight = style().lineHeight();
-        if (configuredLineHeight <= 4f) {
-            return baseHeight * configuredLineHeight;
-        }
-        return configuredLineHeight;
+    private float horizontalOffset(float available, float width) {
+        return switch (textAlign) {
+            case CENTER -> Math.max(0, available - width) * 0.5f;
+            case END -> Math.max(0, available - width);
+            default -> 0;
+        };
+    }
+
+    private float verticalOffset(float available, float height) {
+        return switch (verticalAlign) {
+            case CENTER -> Math.max(0, available - height) * 0.5f;
+            case END -> Math.max(0, available - height);
+            default -> 0;
+        };
     }
 }

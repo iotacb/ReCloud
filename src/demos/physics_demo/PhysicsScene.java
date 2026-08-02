@@ -1,10 +1,13 @@
 package physics_demo;
 
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Absolute;
 import de.kostari.cloud.core.ui.Canvas;
+import de.kostari.cloud.core.ui.Panel;
 import de.kostari.cloud.core.ui.Text;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.window.Window;
+import demo_ui.DemoUI;
 
 public class PhysicsScene extends Scene {
 
@@ -30,9 +33,13 @@ public class PhysicsScene extends Scene {
 
         canvas = new Canvas();
         fpsText = new Text("FPS: 0");
-        fpsText.style().css(
-                "padding: 8px 10px; color: white; background: #111827cc; border: 1px solid #ffffff44; shadow-depth: 1px;");
-        canvas.append(fpsText, 16, 16, 140, Canvas.AUTO);
+        fpsText.color(Colors.hex("#ffffff")).shadow(1);
+        Panel badge = DemoUI.badge(DemoUI.GREEN);
+        badge.add(fpsText);
+        Absolute overlay = new Absolute();
+        overlay.add(badge);
+        overlay.position(badge).left(16).top(16).width(150);
+        canvas.add(overlay);
 
         super.init();
     }

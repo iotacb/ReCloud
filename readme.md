@@ -242,18 +242,22 @@ Run `physics_demo` to try a small platform scene using A/D and Space.
 
 ## UI overlays
 
-The UI package provides `Canvas`, `Flex`, `Grid`, `Text`, `Button`, and `Panel`.
-Canvas instances render automatically after the scene and post-processing, so UI
-stays on top of the game world.
+The retained UI package provides typed layout through `Flex`, `Grid`, and
+`Absolute`, plus compositional `Panel`, `Text`, `Button`, `TextBox`, and `Slider`
+controls. Canvas instances render automatically after scene post-processing, so
+UI remains crisp and above the game world.
 
 ```java
 Canvas canvas = new Canvas();
 
 Flex hud = new Flex(FlexDirection.COLUMN);
-hud.style().css("padding: 14px; gap: 10px; background: #111827cc; border: 1px solid #ffffff33;");
+hud.layout().padding(14);
+hud.gap(10)
+        .background(Colors.hex("#111827cc"))
+        .border(1, Colors.hex("#ffffff33"));
 
 Text score = new Text("Score: 0");
-score.style().css("line-height: 1.3;");
+score.lineHeight(1.3f).color(Colors.hex("#e0f2fe"));
 Button restart = new Button("Restart").onClick(() -> restartGame());
 hud.add(score, restart);
 
@@ -261,6 +265,24 @@ canvas.append(hud, 16, 16, 280, Canvas.AUTO);
 
 score.text("Score: " + points);
 ```
+
+Controls expose their primitive parts for custom composition:
+
+```java
+Button launch = new Button("Launch");
+launch.panel().layout().padding(12, 18);
+launch.panel().background(new UIMaterial()
+        .gradient(Colors.hex("#17456f"), Colors.hex("#0a1830"))
+        .border(1, Colors.hex("#74e8ff"))
+        .radius(10)
+        .glow(Colors.hex("#3bdcff"), 14, 0.6f)
+        .sheen(Colors.hex("#ffffffaa"), 0.16f, 0.3f, 0.7f));
+launch.textElement().fontScale(0.8f).shadow(1);
+```
+
+`UIMaterial` is rendered by a dedicated screen-space SDF shader and supports
+rounded corners, gradients, borders, glow, pulsing, and animated sheen. Panels
+can also use solid, gradient, texture, layered, or nine-slice `Drawable` skins.
 
 ## Tweens
 

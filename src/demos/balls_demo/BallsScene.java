@@ -2,6 +2,7 @@ package balls_demo;
 
 import de.kostari.cloud.core.events.EventInfo;
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Absolute;
 import de.kostari.cloud.core.ui.Button;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Flex;
@@ -12,6 +13,7 @@ import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.window.Input;
 import de.kostari.cloud.core.window.Window;
 import de.kostari.cloud.core.window.WindowEvents;
+import demo_ui.DemoUI;
 
 public class BallsScene extends Scene {
 
@@ -29,7 +31,10 @@ public class BallsScene extends Scene {
 
         canvas = new Canvas();
         createHud();
-        canvas.append(hud, 16, 16, 260, Canvas.AUTO);
+        Absolute overlay = new Absolute();
+        overlay.add(hud);
+        overlay.position(hud).left(18).top(18).width(270);
+        canvas.add(overlay);
         WindowEvents.onMouseScroll.join(this, new EventInfo("zoomCam"));
         super.init();
     }
@@ -67,15 +72,16 @@ public class BallsScene extends Scene {
 
     private void createHud() {
         hud = new Flex(FlexDirection.COLUMN);
-        hud.style().css("padding: 14px; gap: 10px; background: #111827cc; border: 1px solid #22d3ee66;");
+        hud.layout().padding(14);
+        hud.gap(10).background(DemoUI.surface(DemoUI.CYAN, 12));
 
         Text title = new Text("Balls Demo");
-        title.style().css("font-scale: 1.2; color: #67e8f9; shadow-depth: 2px;");
+        title.fontScale(1.2f).color(Colors.hex("#67e8f9")).shadow(2);
 
         statsText = new Text("");
-        statsText.style().css("color: white; shadow-depth: 1px;");
+        statsText.color(Colors.hex("#ffffff")).shadow(1);
 
-        Button addButton = new Button("Add 100").onClick(() -> spawnBalls(100));
+        Button addButton = DemoUI.button("Add 100", DemoUI.CYAN, () -> spawnBalls(100));
         hud.add(title, statsText, addButton);
     }
 

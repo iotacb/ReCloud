@@ -13,11 +13,15 @@ import de.kostari.cloud.core.lighting.LightingEffect;
 import de.kostari.cloud.core.scene.Scene;
 import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.ui.Button;
+import de.kostari.cloud.core.ui.ButtonSkin;
 import de.kostari.cloud.core.ui.Canvas;
+import de.kostari.cloud.core.ui.AlignItems;
 import de.kostari.cloud.core.ui.Flex;
 import de.kostari.cloud.core.ui.FlexDirection;
 import de.kostari.cloud.core.ui.Panel;
 import de.kostari.cloud.core.ui.Text;
+import de.kostari.cloud.core.ui.TextAlign;
+import de.kostari.cloud.core.ui.UIMaterial;
 import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.input.Keys;
 import de.kostari.cloud.core.utils.render.Render;
@@ -30,6 +34,7 @@ import tower_climber.TowerGenerator.EnemyContact;
 import tower_climber.RunProgression.Upgrade;
 import tower_climber.RunProgression.Weapon;
 import tower_climber.main_menu.MainMenuScene;
+import demo_ui.DemoUI;
 
 public class GameScene extends Scene {
 
@@ -402,92 +407,105 @@ public class GameScene extends Scene {
         hudCanvas = new Canvas();
 
         Panel statusPanel = new Panel();
-        statusPanel.style().css("padding: 10px 14px; background: #071525e8; border: 1px solid #5be7d355;");
+        statusPanel.layout().padding(10, 14);
+        statusPanel.background(DemoUI.surface(DemoUI.CYAN, 10));
         statusText = new Text("");
-        statusText.style().css("font-scale: 0.42; line-height: 1.25; color: #d9f4ef; shadow-depth: 1px;");
+        statusText.fontScale(0.42f).lineHeight(1.25f).color(Colors.hex("#d9f4ef")).shadow(1);
         statusPanel.add(statusText);
         hudCanvas.append(statusPanel, 20, 18, 470, Canvas.AUTO);
 
         healthText = new Text("");
-        healthText.style().css("font-scale: 0.34; color: #ffb5a5; shadow-depth: 1px;");
+        healthText.fontScale(0.34f).color(Colors.hex("#ffb5a5")).shadow(1);
         hudCanvas.append(healthText, 24, 84, 300, 22);
 
         Panel healthTrack = new Panel();
-        healthTrack.style().css("background: #301b25e8; border: 1px solid #ff705055;");
+        healthTrack.background(DemoUI.meterTrack(DemoUI.RED));
         healthFill = new Panel();
-        healthFill.style().css("background: #ef6549;");
+        healthFill.background(DemoUI.meterFill(DemoUI.RED));
         hudCanvas.append(healthTrack, 24, 108, 270, 13);
         hudCanvas.append(healthFill, 26, 110, 266, 9);
 
         xpText = new Text("");
-        xpText.style().css("font-scale: 0.34; color: #8ff8e6; text-align: end; shadow-depth: 1px;");
+        xpText.fontScale(0.34f).color(Colors.hex("#8ff8e6")).align(TextAlign.END).shadow(1);
         hudCanvas.append(xpText, 306, 84, 300, 22);
 
         Panel xpTrack = new Panel();
-        xpTrack.style().css("background: #102c35e8; border: 1px solid #5be7d355;");
+        xpTrack.background(DemoUI.meterTrack(DemoUI.CYAN));
         xpFill = new Panel();
-        xpFill.style().css("background: #5be7d3;");
+        xpFill.background(DemoUI.meterFill(DemoUI.CYAN));
         hudCanvas.append(xpTrack, 336, 108, 270, 13);
         hudCanvas.append(xpFill, 338, 110, 1, 9);
 
         weaponText = new Text("");
-        weaponText.style().css("padding: 6px 10px; font-scale: 0.34; color: #c6fff5; background: #071525c8; border: 1px solid #5be7d344;");
+        weaponText.layout().padding(6, 10);
+        weaponText.fontScale(0.34f).color(Colors.hex("#c6fff5"))
+                .background(DemoUI.surface(DemoUI.CYAN, 7));
         hudCanvas.append(weaponText, 24, 128, 300, Canvas.AUTO);
 
         aetherText = new Text("");
-        aetherText.style().css("padding: 6px 10px; font-scale: 0.34; color: #dfb6ff; text-align: end; background: #160d29c8; border: 1px solid #be77ff55;");
+        aetherText.layout().padding(6, 10);
+        aetherText.fontScale(0.34f).color(Colors.hex("#dfb6ff")).align(TextAlign.END)
+                .background(DemoUI.surface(DemoUI.VIOLET, 7));
         hudCanvas.append(aetherText, 336, 128, 270, Canvas.AUTO);
 
         controlsText = new Text("A D MOVE   SPACE JUMP   MOUSE AIM / CLICK ATTACK   1 2 3 WEAPONS   RMB / F NOVA   SHIFT DASH   U UPGRADES");
-        controlsText.style().css("padding: 7px 10px; font-scale: 0.31; color: #7da8aa; text-align: center; background: #071525b8; border: 1px solid #5be7d322;");
+        controlsText.layout().padding(7, 10);
+        controlsText.fontScale(0.31f).color(Colors.hex("#7da8aa")).align(TextAlign.CENTER)
+                .background(DemoUI.surface(DemoUI.CYAN, 7));
         hudCanvas.append(controlsText, 20, Window.get().getHeight() - 42, 760, Canvas.AUTO);
 
         levelToast = new Text("");
-        levelToast.style().css("padding: 12px; font-scale: 0.82; color: #d8fff5; text-align: center; background: #0c3942d9; border: 1px solid #5be7d3aa; shadow-depth: 2px;");
+        levelToast.layout().padding(12);
+        levelToast.fontScale(0.82f).color(Colors.hex("#d8fff5")).align(TextAlign.CENTER)
+                .background(DemoUI.surface(DemoUI.CYAN, 10)).shadow(2);
         levelToast.visible(false);
         hudCanvas.append(levelToast, 0, 150, 420, Canvas.AUTO);
 
         comboText = new Text("");
-        comboText.style().css("padding: 9px 13px; font-scale: 0.52; color: #f2c5ff; text-align: center; background: #241435d9; border: 1px solid #be77ffaa; shadow-depth: 2px;");
+        comboText.layout().padding(9, 13);
+        comboText.fontScale(0.52f).color(Colors.hex("#f2c5ff")).align(TextAlign.CENTER)
+                .background(DemoUI.surface(DemoUI.VIOLET, 10)).shadow(2);
         comboText.visible(false);
         hudCanvas.append(comboText, Window.get().getWidth() - 272, 22, 250, Canvas.AUTO);
 
         gameOverCard = new Panel();
-        gameOverCard.style().css("padding: 24px 32px; background: #07111bf2; border: 2px solid #ff705099;");
+        gameOverCard.layout().padding(24, 32);
+        gameOverCard.background(DemoUI.surface(DemoUI.RED, 16));
         Flex gameOverContent = new Flex(FlexDirection.COLUMN);
-        gameOverContent.style().css("gap: 12px; align-items: stretch;");
+        gameOverContent.gap(12).align(AlignItems.STRETCH);
         gameOverTitle = new Text("RUN OVER");
-        gameOverTitle.style().css("font-scale: 1.4; color: #ff8062; text-align: center; shadow-depth: 3px;");
+        gameOverTitle.fontScale(1.4f).color(Colors.hex("#ff8062")).align(TextAlign.CENTER).shadow(3);
         gameOverStats = new Text("");
-        gameOverStats.style().css("font-scale: 0.5; line-height: 1.35; color: #d8e8e5; text-align: center;");
+        gameOverStats.fontScale(0.5f).lineHeight(1.35f).color(Colors.hex("#d8e8e5")).align(TextAlign.CENTER);
         Button retry = new Button("RETRY THIS TOWER  [R]").onClick(this::restartSameTower);
-        retry.style().css("height: 48px; background: #d9583f; hover-background: #ff7050; active-background: #a83b2b; border: 1px solid #ffb39f; font-scale: 0.58;");
+        configureButton(retry, 48, 0.58f, "#d9583f", "#ff7050", "#a83b2b", "#ffb39f", "#ffffff");
         Button fresh = new Button("GENERATE NEW TOWER  [N]").onClick(this::restartNewTower);
-        fresh.style().css("height: 46px; background: #126b6b; hover-background: #198b87; active-background: #0c4b50; border: 1px solid #8ff8e699; font-scale: 0.5;");
+        configureButton(fresh, 46, 0.5f, "#126b6b", "#198b87", "#0c4b50", "#8ff8e699", "#ffffff");
         Button menu = new Button("RETURN TO MENU  [ESC]").onClick(this::returnToMenu);
-        menu.style().css("height: 44px; background: #10293a; hover-background: #183d50; border: 1px solid #5b8b9466; font-scale: 0.48;");
+        configureButton(menu, 44, 0.48f, "#10293a", "#183d50", "#10293a", "#5b8b9466", "#ffffff");
         gameOverContent.add(gameOverTitle, gameOverStats, retry, fresh, menu);
         gameOverCard.add(gameOverContent);
         gameOverCard.visible(false);
         hudCanvas.append(gameOverCard, 0, 0, 430, Canvas.AUTO);
 
         pauseShade = new Panel();
-        pauseShade.style().css("background: #020711b8;");
+        pauseShade.background(Colors.hex("#020711b8"));
         pauseShade.visible(false);
         hudCanvas.append(pauseShade, 0, 0, Canvas.FILL, Canvas.FILL);
 
         pauseCard = new Panel();
-        pauseCard.style().css("padding: 26px 32px; background: #071525f5; border: 2px solid #5be7d399;");
+        pauseCard.layout().padding(26, 32);
+        pauseCard.background(DemoUI.surface(DemoUI.CYAN, 16));
         Flex pauseContent = new Flex(FlexDirection.COLUMN);
-        pauseContent.style().css("gap: 14px; align-items: stretch;");
+        pauseContent.gap(14).align(AlignItems.STRETCH);
         Text pauseTitle = new Text("RUN PAUSED");
-        pauseTitle.style().css("font-scale: 1.1; color: #8ff8e6; text-align: center; shadow-depth: 2px;");
+        pauseTitle.fontScale(1.1f).color(Colors.hex("#8ff8e6")).align(TextAlign.CENTER).shadow(2);
         Text pauseHint = new Text("THE TOWER IS HOLDING ITS BREATH");
-        pauseHint.style().css("font-scale: 0.38; color: #8aaeb2; text-align: center;");
+        pauseHint.fontScale(0.38f).color(Colors.hex("#8aaeb2")).align(TextAlign.CENTER);
         Button resume = new Button("RESUME  [ESC]").onClick(() -> setPaused(false));
-        resume.style().css("height: 50px; background: #167b75; hover-background: #20a49b; border: 1px solid #8ff8e6; font-scale: 0.56;");
+        configureButton(resume, 50, 0.56f, "#167b75", "#20a49b", "#167b75", "#8ff8e6", "#ffffff");
         Button pauseMenu = new Button("RETURN TO MENU").onClick(this::returnToMenu);
-        pauseMenu.style().css("height: 46px; background: #10293a; hover-background: #183d50; border: 1px solid #5b8b9466; font-scale: 0.46;");
+        configureButton(pauseMenu, 46, 0.46f, "#10293a", "#183d50", "#10293a", "#5b8b9466", "#ffffff");
         pauseContent.add(pauseTitle, pauseHint, resume, pauseMenu);
         pauseCard.add(pauseContent);
         pauseCard.visible(false);
@@ -498,35 +516,39 @@ public class GameScene extends Scene {
 
     private void buildUpgradeScreen() {
         upgradeShade = new Panel();
-        upgradeShade.style().css("background: #02040bd9;");
+        upgradeShade.background(Colors.hex("#02040bd9"));
         upgradeShade.visible(false);
         hudCanvas.append(upgradeShade, 0, 0, Canvas.FILL, Canvas.FILL);
 
         upgradeCard = new Panel();
-        upgradeCard.style().css("padding: 20px 26px; background: #090f20fa; border: 2px solid #be77ffbb;");
+        upgradeCard.layout().padding(20, 26);
+        upgradeCard.background(DemoUI.surface(DemoUI.VIOLET, 16));
         Flex content = new Flex(FlexDirection.COLUMN);
-        content.style().css("gap: 7px; align-items: stretch;");
+        content.gap(7).align(AlignItems.STRETCH);
 
         Text title = new Text("ASCENSION GRID");
-        title.style().css("font-scale: 1.0; color: #e2c3ff; text-align: center; shadow-depth: 3px;");
+        title.fontScale(1.0f).color(Colors.hex("#e2c3ff")).align(TextAlign.CENTER).shadow(3);
         upgradeCurrencyText = new Text("");
-        upgradeCurrencyText.style().css("font-scale: 0.43; color: #8ff8e6; text-align: center;");
+        upgradeCurrencyText.fontScale(0.43f).color(Colors.hex("#8ff8e6")).align(TextAlign.CENTER);
         upgradeHintText = new Text("SPEND CORES ON WEAPONS AND ABILITIES  /  CLICK AN UNLOCKED WEAPON TO EQUIP");
-        upgradeHintText.style().css("font-scale: 0.3; color: #789ba5; text-align: center;");
+        upgradeHintText.fontScale(0.3f).color(Colors.hex("#789ba5")).align(TextAlign.CENTER);
 
         Text weapons = new Text("WEAPONS  /  AIM 360 DEGREES WITH THE MOUSE");
-        weapons.style().css("margin: 5px 0px 0px 0px; font-scale: 0.38; color: #ffd88b;");
+        weapons.layout().margin(5, 0, 0, 0);
+        weapons.fontScale(0.38f).color(Colors.hex("#ffd88b"));
         bladeButton = upgradeButton("RIFT BLADE", () -> equipWeapon(Weapon.BLADE));
         bowButton = upgradeButton("AETHER BOW", () -> unlockOrEquip(Upgrade.BOW, Weapon.BOW));
         shurikenButton = upgradeButton("STAR SHURIKEN", () -> unlockOrEquip(Upgrade.SHURIKEN, Weapon.SHURIKEN));
 
         Text abilities = new Text("ABILITIES  /  PERMANENT FOR THIS RUN");
-        abilities.style().css("margin: 5px 0px 0px 0px; font-scale: 0.38; color: #c696ff;");
+        abilities.layout().margin(5, 0, 0, 0);
+        abilities.fontScale(0.38f).color(Colors.hex("#c696ff"));
         doubleJumpButton = upgradeButton("DOUBLE JUMP", () -> unlockUpgrade(Upgrade.DOUBLE_JUMP));
         novaButton = upgradeButton("ASTRAL NOVA", () -> unlockUpgrade(Upgrade.ASTRAL_NOVA));
         reservoirButton = upgradeButton("AETHER RESERVOIR", () -> unlockUpgrade(Upgrade.AETHER_RESERVOIR));
         Button close = new Button("RETURN TO TOWER  [U / ESC]").onClick(() -> setUpgradeOpen(false));
-        close.style().css("height: 44px; margin: 8px 0px 0px 0px; background: #167b75; hover-background: #20a49b; border: 1px solid #8ff8e6; font-scale: 0.48;");
+        close.layout().margin(8, 0, 0, 0);
+        configureButton(close, 44, 0.48f, "#167b75", "#20a49b", "#167b75", "#8ff8e6", "#ffffff");
 
         content.add(title, upgradeCurrencyText, upgradeHintText, weapons,
                 bladeButton, bowButton, shurikenButton, abilities,
@@ -539,8 +561,29 @@ public class GameScene extends Scene {
 
     private Button upgradeButton(String label, Runnable action) {
         Button button = new Button(label).onClick(action);
-        button.style().css("height: 43px; background: #161d35; hover-background: #272d50; active-background: #0d1225; border: 1px solid #8e79bd88; font-scale: 0.39;");
+        configureButton(button, 43, 0.39f, "#161d35", "#272d50", "#0d1225", "#8e79bd88", "#ffffff");
         return button;
+    }
+
+    private void configureButton(Button button, float height, float fontScale,
+            String normal, String hovered, String pressed, String border, String text) {
+        button.layout().height(height);
+        Color4f accent = Colors.hex(border);
+        UIMaterial normalMaterial = buttonMaterial(normal, accent, 0.14f);
+        UIMaterial hoveredMaterial = buttonMaterial(hovered, accent, 0.38f)
+                .sheen(Colors.hex("#ffffffaa"), 0.16f, 0.4f, 0.65f);
+        UIMaterial pressedMaterial = buttonMaterial(pressed, accent, 0.44f);
+        UIMaterial disabledMaterial = new UIMaterial().fill(Colors.hex("#121923cc"))
+                .border(1, Colors.hex("#8aa0b333")).radius(8);
+        Color4f textColor = Colors.hex(text);
+        button.fontScale(fontScale).skin(new ButtonSkin(
+                normalMaterial, hoveredMaterial, pressedMaterial, hoveredMaterial, disabledMaterial,
+                textColor, textColor, textColor, Colors.hex("#718090")));
+    }
+
+    private UIMaterial buttonMaterial(String fill, Color4f accent, float glow) {
+        return new UIMaterial().fill(Colors.hex(fill)).border(1, accent).radius(8)
+                .glow(accent, 9, glow);
     }
 
     private void updateCheckpoint() {
@@ -1230,8 +1273,8 @@ public class GameScene extends Scene {
         Color4f resultAccent = newHighScore
                 ? Colors.from255(255, 218, 112, 255)
                 : Colors.from255(255, 128, 98, 255);
-        gameOverTitle.style().color(resultAccent);
-        gameOverCard.style().borderColor(new Color4f(
+        gameOverTitle.color(resultAccent);
+        gameOverCard.borderColor(new Color4f(
                 resultAccent.r, resultAccent.g, resultAccent.b, 0.68f));
         gameOverStats.text((fell ? "YOU FELL INTO THE CLOUDS" : "THE TOWER FOUGHT BACK")
                 + "\n\nSCORE  " + score
@@ -1670,8 +1713,7 @@ public class GameScene extends Scene {
         Color4f comboColor = combo >= 3
                 ? Colors.from255(230, 165, 255, 255)
                 : Colors.from255(143, 248, 230, 255);
-        comboText.style()
-                .fontScale(0.5f + Math.min(0.1f, combo * 0.012f))
+        comboText.fontScale(0.5f + Math.min(0.1f, combo * 0.012f))
                 .color(comboColor)
                 .borderColor(new Color4f(comboColor.r, comboColor.g, comboColor.b, 0.72f));
         comboText.text(title + "\n+" + points + " PTS");

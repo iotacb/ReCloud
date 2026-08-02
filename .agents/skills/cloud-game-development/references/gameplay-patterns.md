@@ -102,15 +102,18 @@ Create retained UI once, then update element state:
 ```java
 Canvas canvas = new Canvas();
 Flex hud = new Flex(FlexDirection.COLUMN);
-hud.style().css("padding: 14px; gap: 8px; background: #111827dd; border: 1px solid #ffffff33;");
+hud.layout().padding(14);
+hud.gap(8)
+        .background(Colors.hex("#111827dd"))
+        .border(1, Colors.hex("#ffffff33"));
 
-Text score = new Text("Score: 0");
+Text score = new Text("Score: 0").color(Colors.hex("#e0f2fe"));
 Button restart = new Button("Restart").onClick(this::restart);
 hud.add(score, restart);
 canvas.append(hud, 16, 16, 280, Canvas.AUTO);
 ```
 
-Do not manually draw a `Canvas`. It renders after world post-processing. For responsive fixed slots, update `canvas.setBounds(...)` when the window dimensions change or each update.
+Controls are composed from primitives: use `button.panel()` and `button.textElement()` to customize their parts. Use `UIMaterial` as a panel drawable for shader-rendered rounded gradients, borders, glow, pulse, and animated sheen. Do not manually draw a `Canvas`. It renders after world post-processing. For responsive fixed slots, update `canvas.setBounds(...)` when the window dimensions change or each update.
 
 ## Particle burst
 

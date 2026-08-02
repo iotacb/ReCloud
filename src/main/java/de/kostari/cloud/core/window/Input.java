@@ -1,16 +1,20 @@
 package de.kostari.cloud.core.window;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.lwjgl.glfw.GLFW;
 
 import de.kostari.cloud.core.utils.math.Vector2;
 
 public class Input {
 
-    private static boolean keyPressed[] = new boolean[GLFW.GLFW_KEY_LAST];
-    private static boolean keyPressedLast[] = new boolean[GLFW.GLFW_KEY_LAST];
+    private static boolean keyPressed[] = new boolean[GLFW.GLFW_KEY_LAST + 1];
+    private static boolean keyPressedLast[] = new boolean[GLFW.GLFW_KEY_LAST + 1];
 
-    private static boolean mouseButtonsPressed[] = new boolean[GLFW.GLFW_MOUSE_BUTTON_LAST];
-    private static boolean mouseButtonsPressedLast[] = new boolean[GLFW.GLFW_MOUSE_BUTTON_LAST];
+    private static boolean mouseButtonsPressed[] = new boolean[GLFW.GLFW_MOUSE_BUTTON_LAST + 1];
+    private static boolean mouseButtonsPressedLast[] = new boolean[GLFW.GLFW_MOUSE_BUTTON_LAST + 1];
+    private static final List<Integer> typedCodepoints = new ArrayList<>();
 
     protected static int mouseX;
     protected static int mouseY;
@@ -41,13 +45,18 @@ public class Input {
         }
     }
 
+    protected static void listenCharacter(int codepoint) {
+        typedCodepoints.add(codepoint);
+    }
+
     protected static void update() {
         scrollX = 0;
         scrollY = 0;
-        for (int i = 32; i < GLFW.GLFW_KEY_LAST; i++) {
+        typedCodepoints.clear();
+        for (int i = 32; i <= GLFW.GLFW_KEY_LAST; i++) {
             keyPressedLast[i] = keyPressed[i];
         }
-        for (int i = 0; i < GLFW.GLFW_MOUSE_BUTTON_LAST; i++) {
+        for (int i = 0; i <= GLFW.GLFW_MOUSE_BUTTON_LAST; i++) {
             mouseButtonsPressedLast[i] = mouseButtonsPressed[i];
         }
     }
@@ -176,6 +185,10 @@ public class Input {
 
     public static int keyState(int keyCode) {
         return keyPressed[keyCode] ? 1 : 0;
+    }
+
+    public static List<Integer> typedCodepoints() {
+        return List.copyOf(typedCodepoints);
     }
 
 }

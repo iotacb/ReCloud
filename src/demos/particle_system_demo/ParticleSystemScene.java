@@ -5,6 +5,7 @@ import java.util.Random;
 import de.kostari.cloud.core.components.Particles;
 import de.kostari.cloud.core.objects.GameObject;
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Absolute;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Flex;
 import de.kostari.cloud.core.ui.FlexDirection;
@@ -17,6 +18,7 @@ import de.kostari.cloud.core.utils.types.Color4f;
 import de.kostari.cloud.core.window.Input;
 import de.kostari.cloud.core.window.Time;
 import de.kostari.cloud.core.window.Window;
+import demo_ui.DemoUI;
 
 public class ParticleSystemScene extends Scene {
 
@@ -304,46 +306,55 @@ public class ParticleSystemScene extends Scene {
 
     private void createHud() {
         Canvas canvas = new Canvas();
+        Absolute overlay = new Absolute();
 
         Flex header = new Flex(FlexDirection.COLUMN);
-        header.style().css(
-                "padding: 14px 16px; gap: 4px; background: #071122dd; border: 1px solid #38bdf855;");
+        header.layout().padding(14, 16);
+        header.gap(4).background(DemoUI.surface(DemoUI.CYAN, 12));
 
         Text title = new Text("Particle System Showcase");
-        title.style().css("font-scale: 1.45; color: #f8fafc; shadow-depth: 2px;");
+        title.fontScale(1.45f).color(Colors.hex("#f8fafc")).shadow(2);
 
         stats = new Text("");
-        stats.style().css("color: #a5f3fc; shadow-depth: 1px;");
+        stats.color(Colors.hex("#a5f3fc")).shadow(1);
         header.add(title, stats);
-        canvas.append(header, 22, 20, 430, Canvas.AUTO);
+        overlay.add(header);
+        overlay.position(header).left(22).top(20).width(430);
 
         state = new Text("RUNNING");
-        state.style().css(
-                "padding: 9px 12px; color: #bbf7d0; background: #052e2bcc; border: 1px solid #34d39977; shadow-depth: 1px;");
-        canvas.append(state, 1148, 22, 108, Canvas.AUTO);
+        state.color(Colors.hex("#bbf7d0")).shadow(1);
+        Panel stateBadge = DemoUI.badge(DemoUI.GREEN);
+        stateBadge.add(state);
+        overlay.add(stateBadge);
+        overlay.position(stateBadge).right(24).top(22).width(112);
 
-        canvas.append(label("FIRE", "cone · color · size"), 105, 625, 170, Canvas.AUTO);
-        canvas.append(label("FOUNTAIN", "gravity · world space"), 410, 625, 200, Canvas.AUTO);
-        canvas.append(label("FIREWORKS", "circle · manual emit · damping"), 840, 625, 240, Canvas.AUTO);
+        Panel fire = label("FIRE", "cone / color / size", DemoUI.RED);
+        Panel fountain = label("FOUNTAIN", "gravity / world space", DemoUI.CYAN);
+        Panel fireworks = label("FIREWORKS", "circle / manual emit / damping", DemoUI.VIOLET);
+        overlay.add(fire, fountain, fireworks);
+        overlay.position(fire).anchor(0.15f, 1).bottom(68).width(180);
+        overlay.position(fountain).anchor(0.40f, 1).bottom(68).width(210);
+        overlay.position(fireworks).anchor(0.76f, 1).bottom(68).width(250);
 
         Text controls = new Text("CLICK  explosion     SPACE  pause / resume     R  restart");
-        controls.style().css(
-                "padding: 9px 14px; color: #e0f2fe; background: #0f172acc; border: 1px solid #ffffff22; shadow-depth: 1px;");
-        canvas.append(controls, 386, 676, 508, Canvas.AUTO);
+        controls.color(Colors.hex("#e0f2fe")).shadow(1);
+        Panel controlsBadge = DemoUI.badge(DemoUI.CYAN);
+        controlsBadge.add(controls);
+        overlay.add(controlsBadge);
+        overlay.position(controlsBadge).anchor(0.5f, 1).bottom(16).width(520);
+        canvas.add(overlay);
     }
 
-    private static Panel label(String title, String subtitle) {
-        Panel panel = new Panel();
-        panel.style().css(
-                "padding: 8px 10px; background: #08101fcc; border: 1px solid #64748b55;");
+    private static Panel label(String title, String subtitle, Color4f accent) {
+        Panel panel = DemoUI.badge(accent);
 
         Flex content = new Flex(FlexDirection.COLUMN);
-        content.style().css("gap: 2px;");
+        content.gap(2);
 
         Text heading = new Text(title);
-        heading.style().css("color: #f8fafc; shadow-depth: 1px;");
+        heading.color(accent).shadow(1);
         Text detail = new Text(subtitle);
-        detail.style().css("font-scale: 0.78; color: #94a3b8;");
+        detail.fontScale(0.78f).color(Colors.hex("#94a3b8"));
         content.add(heading, detail);
         panel.add(content);
         return panel;

@@ -4,21 +4,29 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import de.kostari.cloud.core.utils.render.Render;
-import de.kostari.cloud.core.utils.types.Color4f;
-
 public abstract class UIElement {
 
-    private final Style style = new Style();
+    private final Layout layout = new Layout(this);
     private final List<UIElement> children = new ArrayList<>();
     private UIElement parent;
     private boolean visible = true;
+    private boolean pointerEvents;
+    private boolean clipChildren;
+    private boolean layoutDirty = true;
+    private boolean paintDirty = true;
+    private float translateX;
+    private float translateY;
+    private float opacity = 1;
 
     protected final UIRect bounds = new UIRect();
     protected final UIRect contentBounds = new UIRect();
+    private final UIRect renderBounds = new UIRect();
+    private final UIRect renderContentBounds = new UIRect();
+    private UISize measuredSize = UISize.ZERO;
+    private float inheritedOpacity = 1;
 
-    public Style style() {
-        return style;
+    public Layout layout() {
+        return layout;
     }
 
     public UIElement add(UIElement... elements) {
@@ -27,12 +35,16 @@ public abstract class UIElement {
         }
 
         for (UIElement element : elements) {
-            if (element == null) {
+            if (element == null || element == this) {
                 continue;
+            }
+            if (element.parent != null) {
+                element.parent.remove(element);
             }
             element.parent = this;
             children.add(element);
         }
+        invalidateLayout();
         return this;
     }
 
@@ -43,6 +55,7 @@ public abstract class UIElement {
     public UIElement remove(UIElement element) {
         if (element != null && children.remove(element)) {
             element.parent = null;
+            invalidateLayout();
         }
         return this;
     }
@@ -52,16 +65,56 @@ public abstract class UIElement {
             child.parent = null;
         }
         children.clear();
+        invalidateLayout();
         return this;
     }
 
-    public UIElement visible(boolean visible) {
-        this.visible = visible;
+    public UIElement visible(boolean value) {
+        if (visible != value) {
+            visible = value;
+            invalidateLayout();
+        }
         return this;
     }
 
     public boolean isVisible() {
         return visible;
+    }
+
+    public UIElement pointerEvents(boolean value) {
+        pointerEvents = value;
+        return this;
+    }
+
+    public boolean acceptsPointerEvents() {
+        return pointerEvents;
+    }
+
+    public UIElement clipChildren(boolean value) {
+        clipChildren = value;
+        invalidatePaint();
+        return this;
+    }
+
+    public boolean clipsChildren() {
+        return clipChildren;
+    }
+
+    public UIElement translate(float x, float y) {
+        translateX = x;
+        translateY = y;
+        invalidatePaint();
+        return this;
+    }
+
+    public UIElement opacity(float value) {
+        opacity = Math.clamp(value, 0, 1);
+        invalidatePaint();
+        return this;
+    }
+
+    public float opacity() {
+        return opacity;
     }
 
     public UIElement parent() {
@@ -76,147 +129,219 @@ public abstract class UIElement {
         return bounds.copy();
     }
 
-    public void layout(float x, float y, float availableWidth, float availableHeight) {
-        float width = style.hasWidth() ? style.width() : availableWidth;
-        float height = style.hasHeight() ? style.height() : availableHeight;
+    public UIRect contentBounds() {
+        return contentBounds.copy();
+    }
 
-        width = style.clampWidth(width);
-        height = style.clampHeight(height);
+    public UISize measuredSize() {
+        return measuredSize;
+    }
 
-        bounds.set(x, y, width, height);
+    public final UISize measure(UIConstraints constraints) {
+        UIConstraints safe = constraints == null ? UIConstraints.unconstrained() : constraints;
+        Insets padding = layout.padding();
+
+        float maximumWidth = Math.min(safe.maxWidth(), layout.maxWidth());
+        float maximumHeight = Math.min(safe.maxHeight(), layout.maxHeight());
+        if (layout.hasWidth()) {
+            maximumWidth = Math.min(maximumWidth, layout.width());
+        }
+        if (layout.hasHeight()) {
+            maximumHeight = Math.min(maximumHeight, layout.height());
+        }
+
+        UIConstraints contentConstraints = new UIConstraints(
+                0,
+                subtractFinite(maximumWidth, padding.horizontal()),
+                0,
+                subtractFinite(maximumHeight, padding.vertical()));
+        UISize content = measureContent(contentConstraints);
+
+        float width = layout.hasWidth() ? layout.width() : content.width() + padding.horizontal();
+        float height = layout.hasHeight() ? layout.height() : content.height() + padding.vertical();
+        width = safe.constrainWidth(layout.clampWidth(width));
+        height = safe.constrainHeight(layout.clampHeight(height));
+        measuredSize = new UISize(width, height);
+        return measuredSize;
+    }
+
+    public final void arrange(UIRect rectangle) {
+        if (rectangle == null) {
+            return;
+        }
+        bounds.set(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
         updateContentBounds();
-        layoutChildren(contentBounds.x, contentBounds.y, contentBounds.width, contentBounds.height);
+        renderBounds.set(bounds.x + translateX, bounds.y + translateY, bounds.width, bounds.height);
+        renderContentBounds.set(contentBounds.x + translateX, contentBounds.y + translateY,
+                contentBounds.width, contentBounds.height);
+        arrangeChildren(contentBounds);
+        layoutDirty = false;
+    }
+
+    public final void layout(float x, float y, float width, float height) {
+        measure(UIConstraints.tight(width, height));
+        arrange(new UIRect(x, y, width, height));
     }
 
     public float preferredWidth() {
-        if (style.hasWidth()) {
-            return style.width();
-        }
-
-        float width = preferredInnerWidth() + style.horizontalInsets();
-        return style.clampWidth(width);
+        return measure(UIConstraints.unconstrained()).width();
     }
 
     public float preferredHeight() {
-        if (style.hasHeight()) {
-            return style.height();
-        }
-
-        float height = preferredInnerHeight() + style.verticalInsets();
-        return style.clampHeight(height);
+        return measure(UIConstraints.unconstrained()).height();
     }
 
     public float preferredHeight(float availableWidth) {
-        if (style.hasHeight()) {
-            return style.height();
+        return measure(UIConstraints.loose(availableWidth, UIConstraints.INFINITY)).height();
+    }
+
+    public void invalidateLayout() {
+        if (!layoutDirty) {
+            layoutDirty = true;
+            if (parent != null) {
+                parent.invalidateLayout();
+            }
+        } else if (parent != null && !parent.layoutDirty) {
+            parent.invalidateLayout();
         }
-
-        float width = style.hasWidth() ? style.width() : Math.max(0, availableWidth);
-        width = style.clampWidth(width);
-        float innerWidth = Math.max(0, width - style.horizontalInsets());
-        float height = preferredInnerHeight(innerWidth) + style.verticalInsets();
-        return style.clampHeight(height);
+        paintDirty = true;
     }
 
-    final float outerPreferredWidth() {
-        return preferredWidth() + style.margin().horizontal();
+    public void invalidatePaint() {
+        paintDirty = true;
     }
 
-    final float outerPreferredHeight() {
-        return preferredHeight() + style.margin().vertical();
+    public boolean isLayoutDirty() {
+        return layoutDirty;
     }
 
-    final float outerPreferredHeight(float availableWidth) {
-        float innerAvailableWidth = Math.max(0, availableWidth - style.margin().horizontal());
-        return preferredHeight(innerAvailableWidth) + style.margin().vertical();
-    }
-
-    final void drawTree() {
+    final void drawTree(float parentTranslateX, float parentTranslateY, float parentOpacity) {
         if (!visible) {
             return;
         }
 
+        float totalTranslateX = parentTranslateX + translateX;
+        float totalTranslateY = parentTranslateY + translateY;
+        inheritedOpacity = parentOpacity * opacity;
+        renderBounds.set(bounds.x + totalTranslateX, bounds.y + totalTranslateY, bounds.width, bounds.height);
+        renderContentBounds.set(contentBounds.x + totalTranslateX, contentBounds.y + totalTranslateY,
+                contentBounds.width, contentBounds.height);
+
         drawSelf();
+        if (clipChildren) {
+            UI.pushClip(renderContentBounds);
+        }
         for (UIElement child : children) {
-            child.drawTree();
+            child.drawTree(totalTranslateX, totalTranslateY, inheritedOpacity);
+        }
+        if (clipChildren) {
+            UI.popClip();
+        }
+        drawOverlay();
+        paintDirty = false;
+    }
+
+    final UIElement hitTest(float x, float y) {
+        if (!visible || inheritedOpacity <= 0 || !renderBounds.contains(x, y)) {
+            return null;
+        }
+        for (int i = children.size() - 1; i >= 0; i--) {
+            UIElement hit = children.get(i).hitTest(x, y);
+            if (hit != null) {
+                return hit;
+            }
+        }
+        return pointerEvents ? this : null;
+    }
+
+    final boolean containsRenderPoint(float x, float y) {
+        return visible && renderBounds.contains(x, y);
+    }
+
+    protected UISize measureContent(UIConstraints constraints) {
+        float width = 0;
+        float height = 0;
+        for (UIElement child : children) {
+            if (!child.isVisible()) {
+                continue;
+            }
+            Insets margin = child.layout.margin();
+            UIConstraints childConstraints = constraints.inset(margin);
+            UISize childSize = child.measure(childConstraints);
+            width = Math.max(width, childSize.width() + margin.horizontal());
+            height = Math.max(height, childSize.height() + margin.vertical());
+        }
+        return new UISize(width, height);
+    }
+
+    protected void arrangeChildren(UIRect area) {
+        for (UIElement child : children) {
+            if (!child.isVisible()) {
+                continue;
+            }
+            Insets margin = child.layout.margin();
+            float width = Math.max(0, area.width - margin.horizontal());
+            float height = Math.max(0, area.height - margin.vertical());
+            child.arrange(new UIRect(area.x + margin.left(), area.y + margin.top(), width, height));
         }
     }
 
     protected void drawSelf() {
     }
 
-    protected void layoutChildren(float x, float y, float width, float height) {
-        for (UIElement child : children) {
-            if (!child.isVisible()) {
-                continue;
-            }
-            Spacing margin = child.style().margin();
-            child.layout(
-                    x + margin.left,
-                    y + margin.top,
-                    Math.max(0, width - margin.horizontal()),
-                    Math.max(0, height - margin.vertical()));
-        }
+    protected void drawOverlay() {
     }
 
-    protected float preferredInnerWidth() {
-        float width = 0;
-        for (UIElement child : children) {
-            if (child.isVisible()) {
-                width = Math.max(width, child.outerPreferredWidth());
-            }
-        }
-        return width;
+    protected UIRect renderBounds() {
+        return renderBounds;
     }
 
-    protected float preferredInnerHeight() {
-        float height = 0;
-        for (UIElement child : children) {
-            if (child.isVisible()) {
-                height = Math.max(height, child.outerPreferredHeight());
-            }
-        }
-        return height;
+    protected UIRect renderContentBounds() {
+        return renderContentBounds;
     }
 
-    protected float preferredInnerHeight(float availableWidth) {
-        float height = 0;
-        for (UIElement child : children) {
-            if (child.isVisible()) {
-                height = Math.max(height, child.outerPreferredHeight(availableWidth));
-            }
-        }
-        return height;
+    protected float renderOpacity() {
+        return inheritedOpacity;
     }
 
-    protected void paintBox() {
-        paintBox(style.backgroundColor());
+    protected boolean isFocusable() {
+        return false;
     }
 
-    protected void paintBox(Color4f backgroundColor) {
-        if (backgroundColor != null && backgroundColor.a > 0) {
-            Render.drawRect(bounds.x, bounds.y, bounds.width, bounds.height, false, backgroundColor);
-        }
-
-        Color4f borderColor = style.borderColor();
-        float borderWidth = style.borderWidth();
-        if (borderColor == null || borderWidth <= 0 || borderColor.a <= 0) {
-            return;
-        }
-
-        Render.drawRect(bounds.x, bounds.y, bounds.width, borderWidth, false, borderColor);
-        Render.drawRect(bounds.x, bounds.bottom() - borderWidth, bounds.width, borderWidth, false, borderColor);
-        Render.drawRect(bounds.x, bounds.y, borderWidth, bounds.height, false, borderColor);
-        Render.drawRect(bounds.right() - borderWidth, bounds.y, borderWidth, bounds.height, false, borderColor);
+    protected void onPointerEnter() {
     }
 
-    protected void updateContentBounds() {
-        float borderWidth = style.borderWidth();
-        Spacing padding = style.padding();
+    protected void onPointerExit() {
+    }
+
+    protected void onPointerDown(float x, float y) {
+    }
+
+    protected void onPointerDrag(float x, float y) {
+    }
+
+    protected void onPointerUp(float x, float y, boolean inside) {
+    }
+
+    protected void onFocusChanged(boolean focused) {
+    }
+
+    protected void onKeyPressed(int key) {
+    }
+
+    protected void onTextInput(int codepoint) {
+    }
+
+    private void updateContentBounds() {
+        Insets padding = layout.padding();
         contentBounds.set(
-                bounds.x + borderWidth + padding.left,
-                bounds.y + borderWidth + padding.top,
-                Math.max(0, bounds.width - style.horizontalInsets()),
-                Math.max(0, bounds.height - style.verticalInsets()));
+                bounds.x + padding.left(),
+                bounds.y + padding.top(),
+                Math.max(0, bounds.width - padding.horizontal()),
+                Math.max(0, bounds.height - padding.vertical()));
+    }
+
+    private static float subtractFinite(float value, float amount) {
+        return Float.isFinite(value) ? Math.max(0, value - amount) : value;
     }
 }

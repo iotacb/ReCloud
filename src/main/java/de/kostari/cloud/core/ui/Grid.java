@@ -5,175 +5,164 @@ import java.util.List;
 
 public class Grid extends Panel {
 
+    private int columns;
+    private float rowGap;
+    private float columnGap;
+    private float rowHeight = Layout.AUTO;
+    private AlignItems alignItems = AlignItems.STRETCH;
+
     public Grid() {
         this(2);
     }
 
     public Grid(int columns) {
-        style().columns(columns).alignItems(AlignItems.STRETCH);
+        this.columns = Math.max(1, columns);
     }
 
-    public Grid columns(int columns) {
-        style().columns(columns);
+    public Grid columns(int value) {
+        columns = Math.max(1, value);
+        invalidateLayout();
+        return this;
+    }
+
+    public Grid gap(float value) {
+        rowGap = Math.max(0, value);
+        columnGap = Math.max(0, value);
+        invalidateLayout();
+        return this;
+    }
+
+    public Grid rowGap(float value) {
+        rowGap = Math.max(0, value);
+        invalidateLayout();
+        return this;
+    }
+
+    public Grid columnGap(float value) {
+        columnGap = Math.max(0, value);
+        invalidateLayout();
+        return this;
+    }
+
+    public Grid rowHeight(float value) {
+        rowHeight = Math.max(0, value);
+        invalidateLayout();
+        return this;
+    }
+
+    public Grid autoRows() {
+        rowHeight = Layout.AUTO;
+        invalidateLayout();
+        return this;
+    }
+
+    public Grid align(AlignItems value) {
+        alignItems = value == null ? AlignItems.STRETCH : value;
+        invalidateLayout();
         return this;
     }
 
     @Override
-    protected void layoutChildren(float x, float y, float width, float height) {
-        List<UIElement> visibleChildren = visibleChildren();
-        int count = visibleChildren.size();
-        if (count == 0) {
+    protected UISize measureContent(UIConstraints constraints) {
+        List<UIElement> elements = visibleChildren();
+        if (elements.isEmpty()) {
+            return UISize.ZERO;
+        }
+
+        float gapWidth = columnGap * Math.max(0, columns - 1);
+        float offeredCellWidth = Float.isFinite(constraints.maxWidth())
+                ? Math.max(0, (constraints.maxWidth() - gapWidth) / columns)
+                : UIConstraints.INFINITY;
+        int rows = (int) Math.ceil(elements.size() / (float) columns);
+        float[] rowHeights = new float[rows];
+        float maxCellWidth = 0;
+
+        for (int i = 0; i < elements.size(); i++) {
+            UIElement child = elements.get(i);
+            Insets margin = child.layout().margin();
+            float childMaxWidth = subtractFinite(offeredCellWidth, margin.horizontal());
+            UISize size = child.measure(UIConstraints.loose(childMaxWidth, constraints.maxHeight()));
+            maxCellWidth = Math.max(maxCellWidth, size.width() + margin.horizontal());
+            rowHeights[i / columns] = Math.max(rowHeights[i / columns], size.height() + margin.vertical());
+        }
+
+        float width = maxCellWidth * columns + gapWidth;
+        float height = rowGap * Math.max(0, rows - 1);
+        for (float measuredRowHeight : rowHeights) {
+            height += rowHeight >= 0 ? rowHeight : measuredRowHeight;
+        }
+        return new UISize(width, height);
+    }
+
+    @Override
+    protected void arrangeChildren(UIRect area) {
+        List<UIElement> elements = visibleChildren();
+        if (elements.isEmpty()) {
             return;
         }
 
-        int columns = style().columns();
-        float columnGap = style().columnGap();
-        float rowGap = style().rowGap();
-        float cellWidth = Math.max(0, (width - columnGap * Math.max(0, columns - 1)) / columns);
-        float cursorY = y;
+        float cellWidth = Math.max(0,
+                (area.width - columnGap * Math.max(0, columns - 1)) / columns);
+        float cursorY = area.y;
 
-        for (int rowStart = 0; rowStart < count; rowStart += columns) {
-            int rowEnd = Math.min(rowStart + columns, count);
-            float rowHeight = rowHeight(visibleChildren, rowStart, rowEnd, cellWidth);
-            float cursorX = x;
+        for (int rowStart = 0; rowStart < elements.size(); rowStart += columns) {
+            int rowEnd = Math.min(rowStart + columns, elements.size());
+            float measuredRowHeight = 0;
+            UISize[] sizes = new UISize[rowEnd - rowStart];
+            for (int i = rowStart; i < rowEnd; i++) {
+                UIElement child = elements.get(i);
+                Insets margin = child.layout().margin();
+                sizes[i - rowStart] = child.measure(UIConstraints.loose(
+                        Math.max(0, cellWidth - margin.horizontal()), area.height));
+                measuredRowHeight = Math.max(measuredRowHeight,
+                        sizes[i - rowStart].height() + margin.vertical());
+            }
+            float currentRowHeight = rowHeight >= 0 ? rowHeight : measuredRowHeight;
 
             for (int i = rowStart; i < rowEnd; i++) {
-                UIElement child = visibleChildren.get(i);
-                Spacing margin = child.style().margin();
+                int column = i - rowStart;
+                UIElement child = elements.get(i);
+                Insets margin = child.layout().margin();
+                UISize desired = sizes[column];
                 float availableWidth = Math.max(0, cellWidth - margin.horizontal());
-                float availableHeight = Math.max(0, rowHeight - margin.vertical());
-                float childWidth = childSize(child, true, availableWidth);
-                float childHeight = childHeight(child, availableWidth, availableHeight);
-                float childX = cursorX + margin.left + alignOffset(availableWidth, childWidth);
-                float childY = cursorY + margin.top + alignOffset(availableHeight, childHeight);
-
-                child.layout(childX, childY, childWidth, childHeight);
-                cursorX += cellWidth + columnGap;
+                float availableHeight = Math.max(0, currentRowHeight - margin.vertical());
+                float childWidth = alignItems == AlignItems.STRETCH && !child.layout().hasWidth()
+                        ? availableWidth
+                        : Math.min(desired.width(), availableWidth);
+                float childHeight = alignItems == AlignItems.STRETCH && !child.layout().hasHeight()
+                        ? availableHeight
+                        : Math.min(desired.height(), availableHeight);
+                float offsetX = alignOffset(availableWidth, childWidth);
+                float offsetY = alignOffset(availableHeight, childHeight);
+                child.arrange(new UIRect(
+                        area.x + column * (cellWidth + columnGap) + margin.left() + offsetX,
+                        cursorY + margin.top() + offsetY,
+                        childWidth,
+                        childHeight));
             }
-
-            cursorY += rowHeight + rowGap;
+            cursorY += currentRowHeight + rowGap;
         }
-    }
-
-    @Override
-    protected float preferredInnerWidth() {
-        List<UIElement> visibleChildren = visibleChildren();
-        int columns = style().columns();
-        float maxCellWidth = 0;
-        for (UIElement child : visibleChildren) {
-            maxCellWidth = Math.max(maxCellWidth, child.outerPreferredWidth());
-        }
-        return maxCellWidth * columns + style().columnGap() * Math.max(0, columns - 1);
-    }
-
-    @Override
-    protected float preferredInnerHeight() {
-        List<UIElement> visibleChildren = visibleChildren();
-        if (visibleChildren.isEmpty()) {
-            return 0;
-        }
-
-        int columns = style().columns();
-        int rows = (int) Math.ceil(visibleChildren.size() / (float) columns);
-        if (style().hasRowHeight()) {
-            return style().rowHeight() * rows + style().rowGap() * Math.max(0, rows - 1);
-        }
-
-        float height = 0;
-        for (int rowStart = 0; rowStart < visibleChildren.size(); rowStart += columns) {
-            int rowEnd = Math.min(rowStart + columns, visibleChildren.size());
-            height += rowHeight(visibleChildren, rowStart, rowEnd);
-        }
-        height += style().rowGap() * Math.max(0, rows - 1);
-        return height;
-    }
-
-    @Override
-    protected float preferredInnerHeight(float availableWidth) {
-        List<UIElement> visibleChildren = visibleChildren();
-        if (visibleChildren.isEmpty()) {
-            return 0;
-        }
-
-        int columns = style().columns();
-        int rows = (int) Math.ceil(visibleChildren.size() / (float) columns);
-        if (style().hasRowHeight()) {
-            return style().rowHeight() * rows + style().rowGap() * Math.max(0, rows - 1);
-        }
-
-        float gapWidth = style().columnGap() * Math.max(0, columns - 1);
-        float cellWidth = Math.max(0, (availableWidth - gapWidth) / columns);
-        float height = 0;
-        for (int rowStart = 0; rowStart < visibleChildren.size(); rowStart += columns) {
-            int rowEnd = Math.min(rowStart + columns, visibleChildren.size());
-            float rowHeight = 0;
-            for (int i = rowStart; i < rowEnd; i++) {
-                rowHeight = Math.max(rowHeight, visibleChildren.get(i).outerPreferredHeight(cellWidth));
-            }
-            height += rowHeight;
-        }
-        height += style().rowGap() * Math.max(0, rows - 1);
-        return height;
     }
 
     private List<UIElement> visibleChildren() {
-        List<UIElement> visibleChildren = new ArrayList<>();
+        List<UIElement> visible = new ArrayList<>();
         for (UIElement child : children()) {
             if (child.isVisible()) {
-                visibleChildren.add(child);
+                visible.add(child);
             }
         }
-        return visibleChildren;
+        return visible;
     }
 
-    private float rowHeight(List<UIElement> children, int start, int end) {
-        if (style().hasRowHeight()) {
-            return style().rowHeight();
-        }
-
-        float rowHeight = 0;
-        for (int i = start; i < end; i++) {
-            rowHeight = Math.max(rowHeight, children.get(i).outerPreferredHeight());
-        }
-        return rowHeight;
+    private float alignOffset(float available, float size) {
+        return switch (alignItems) {
+            case CENTER -> Math.max(0, available - size) * 0.5f;
+            case END -> Math.max(0, available - size);
+            default -> 0;
+        };
     }
 
-    private float rowHeight(List<UIElement> children, int start, int end, float cellWidth) {
-        if (style().hasRowHeight()) {
-            return style().rowHeight();
-        }
-
-        float rowHeight = 0;
-        for (int i = start; i < end; i++) {
-            rowHeight = Math.max(rowHeight, children.get(i).outerPreferredHeight(cellWidth));
-        }
-        return rowHeight;
-    }
-
-    private float childSize(UIElement child, boolean width, float available) {
-        boolean explicit = width ? child.style().hasWidth() : child.style().hasHeight();
-        if (style().alignItems() == AlignItems.STRETCH && !explicit) {
-            return available;
-        }
-
-        float preferred = width ? child.preferredWidth() : child.preferredHeight();
-        return Math.min(preferred, available);
-    }
-
-    private float childHeight(UIElement child, float availableWidth, float availableHeight) {
-        if (style().alignItems() == AlignItems.STRETCH && !child.style().hasHeight()) {
-            return availableHeight;
-        }
-        return Math.min(child.preferredHeight(availableWidth), availableHeight);
-    }
-
-    private float alignOffset(float available, float childSize) {
-        if (style().alignItems() == AlignItems.CENTER) {
-            return Math.max(0, available - childSize) * 0.5f;
-        }
-        if (style().alignItems() == AlignItems.END) {
-            return Math.max(0, available - childSize);
-        }
-        return 0;
+    private static float subtractFinite(float value, float amount) {
+        return Float.isFinite(value) ? Math.max(0, value - amount) : value;
     }
 }

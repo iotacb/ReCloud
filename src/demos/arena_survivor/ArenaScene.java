@@ -11,9 +11,13 @@ import de.kostari.cloud.core.lighting.LightingEffect;
 import de.kostari.cloud.core.scene.Scene;
 import de.kostari.cloud.core.scene.SceneManager;
 import de.kostari.cloud.core.ui.Button;
+import de.kostari.cloud.core.ui.ButtonSkin;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Panel;
 import de.kostari.cloud.core.ui.Text;
+import de.kostari.cloud.core.ui.TextAlign;
+import de.kostari.cloud.core.ui.UIMaterial;
+import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.input.Keys;
 import de.kostari.cloud.core.utils.math.Vector2;
 import de.kostari.cloud.core.utils.render.Render;
@@ -24,6 +28,7 @@ import de.kostari.cloud.core.utils.types.Color4f;
 import de.kostari.cloud.core.window.Input;
 import de.kostari.cloud.core.window.Time;
 import de.kostari.cloud.core.window.Window;
+import demo_ui.DemoUI;
 
 public final class ArenaScene extends Scene {
     static final float ARENA_LEFT = 0;
@@ -732,42 +737,44 @@ public final class ArenaScene extends Scene {
         hud = new Canvas();
 
         Panel topLeft = new Panel();
-        topLeft.style().css("background: #07111eea; border: 1px solid #48f4da77;");
+        topLeft.background(DemoUI.surface(DemoUI.CYAN, 10));
         hud.append(topLeft, 18, 16, 420, 108);
-        waveText = styledText("", "font-scale: 0.50; color: #48f4da; shadow-depth: 2px;");
+        waveText = new Text("").fontScale(0.50f).color(Colors.hex("#48f4da")).shadow(2);
         hud.append(waveText, 34, 28, 380, 28);
-        enemyText = styledText("", "font-scale: 0.31; color: #d6edff; shadow-depth: 1px;");
+        enemyText = new Text("").fontScale(0.31f).color(Colors.hex("#d6edff")).shadow(1);
         hud.append(enemyText, 34, 64, 380, 20);
-        healthText = styledText("", "font-scale: 0.31; color: #ff9aa9; shadow-depth: 1px;");
+        healthText = new Text("").fontScale(0.31f).color(Colors.hex("#ff9aa9")).shadow(1);
         hud.append(healthText, 34, 91, 160, 18);
 
         Panel healthTrack = new Panel();
-        healthTrack.style().css("background: #321422ee; border: 1px solid #ff526866;");
+        healthTrack.background(DemoUI.meterTrack(DemoUI.RED));
         healthFill = new Panel();
-        healthFill.style().css("background: #ff5268;");
+        healthFill.background(DemoUI.meterFill(DemoUI.RED));
         hud.append(healthTrack, 195, 91, 220, 14);
         hud.append(healthFill, 197, 93, 216, 10);
 
         topRightPanel = new Panel();
-        topRightPanel.style().css("background: #07111eea; border: 1px solid #ffc74e77;");
+        topRightPanel.background(DemoUI.surface(DemoUI.GOLD, 10));
         hud.append(topRightPanel, 0, 16, 340, 108);
-        scrapText = styledText("", "font-scale: 0.46; color: #ffc74e; text-align: end; shadow-depth: 2px;");
+        scrapText = new Text("").fontScale(0.46f).color(Colors.hex("#ffc74e")).align(TextAlign.END).shadow(2);
         hud.append(scrapText, 0, 28, 305, 26);
-        weaponText = styledText("", "font-scale: 0.29; color: #d6edff; text-align: end; line-height: 1.35;");
+        weaponText = new Text("").fontScale(0.29f).color(Colors.hex("#d6edff"))
+                .align(TextAlign.END).lineHeight(1.35f);
         hud.append(weaponText, 0, 64, 305, 48);
 
         dashTrack = new Panel();
-        dashTrack.style().css("background: #07111edd; border: 1px solid #48f4da55;");
+        dashTrack.background(DemoUI.meterTrack(DemoUI.CYAN));
         dashFill = new Panel();
-        dashFill.style().css("background: #48f4da;");
+        dashFill.background(DemoUI.meterFill(DemoUI.CYAN));
         hud.append(dashTrack, 18, 0, 240, 10);
         hud.append(dashFill, 20, 0, 236, 6);
 
-        controlsText = styledText("WASD / ARROWS  MOVE     SPACE  PHASE DASH     ESC  PAUSE",
-                "font-scale: 0.27; color: #8da4bb; text-align: center; shadow-depth: 1px;");
+        controlsText = new Text("WASD / ARROWS  MOVE     SPACE  PHASE DASH     ESC  PAUSE")
+                .fontScale(0.27f).color(Colors.hex("#8da4bb")).align(TextAlign.CENTER).shadow(1);
         hud.append(controlsText, 0, 0, 760, 20);
 
-        toastText = styledText("", "font-scale: 0.76; color: #ffffff; text-align: center; shadow-depth: 3px;");
+        toastText = new Text("").fontScale(0.76f).color(Colors.hex("#ffffff"))
+                .align(TextAlign.CENTER).shadow(3);
         hud.append(toastText, 0, 148, 900, 60);
 
         buildShopUi();
@@ -778,41 +785,49 @@ public final class ArenaScene extends Scene {
 
     private void buildShopUi() {
         shopShade = new Panel();
-        shopShade.style().css("background: #02050ddc;");
+        shopShade.background(Colors.hex("#02050ddc"));
         hud.append(shopShade, 0, 0, Canvas.FILL, Canvas.FILL);
 
         shopCard = new Panel();
-        shopCard.style().css("background: #081321f7; border: 2px solid #ffc74ebb;");
+        shopCard.background(DemoUI.surface(DemoUI.GOLD, 16));
         hud.append(shopCard, 0, 0, 900, 570);
 
-        shopTitle = styledText("AETHER EXCHANGE",
-                "font-scale: 0.72; color: #ffc74e; text-align: center; shadow-depth: 2px;");
+        shopTitle = new Text("AETHER EXCHANGE").fontScale(0.72f).color(Colors.hex("#ffc74e"))
+                .align(TextAlign.CENTER).shadow(2);
         hud.append(shopTitle, 0, 0, 840, 38);
-        shopSummary = styledText("", "font-scale: 0.30; color: #cfe9ff; text-align: center; line-height: 1.5;");
+        shopSummary = new Text("").fontScale(0.30f).color(Colors.hex("#cfe9ff"))
+                .align(TextAlign.CENTER).lineHeight(1.5f);
         hud.append(shopSummary, 0, 0, 820, 48);
 
         for (int i = 0; i < offerButtons.length; i++) {
             final int index = i;
             offerButtons[i] = new Button("").onClick(() -> buyOffer(index));
-            offerButtons[i].style().css("padding: 14px; font-scale: 0.35; background: #13243bee; hover-background: #1e4160ff; active-background: #0d1726ff; border: 1px solid #48f4da88; color: #ffffff; shadow-depth: 1px;");
+            offerButtons[i].panel().layout().padding(14);
+            offerButtons[i].fontScale(0.35f).skin(buttonSkin("#13243bee", "#1e4160ff", "#0d1726ff",
+                    "#48f4da88", "#ffffff"));
+            offerButtons[i].textElement().shadow(1);
             hud.append(offerButtons[i], 0, 0, 780, 66);
         }
 
         rerollButton = new Button("REROLL STOCK").onClick(this::rerollOffers);
-        rerollButton.style().css("font-scale: 0.31; background: #201631ee; hover-background: #49306aff; border: 1px solid #c069ff88; color: #e8c8ff;");
+        rerollButton.fontScale(0.31f).skin(buttonSkin("#201631ee", "#49306aff", "#201631ee",
+                "#c069ff88", "#e8c8ff"));
         hud.append(rerollButton, 0, 0, 240, 50);
         nextWaveButton = new Button("DEPLOY NEXT WAVE").onClick(this::startNextWave);
-        nextWaveButton.style().css("font-scale: 0.34; background: #123629ee; hover-background: #1e6147ff; border: 1px solid #48f4dabb; color: #baffed;");
+        nextWaveButton.fontScale(0.34f).skin(buttonSkin("#123629ee", "#1e6147ff", "#123629ee",
+                "#48f4dabb", "#baffed"));
         hud.append(nextWaveButton, 0, 0, 350, 50);
         setShopVisible(false);
     }
 
     private void buildPauseUi() {
         pauseShade = new Panel();
-        pauseShade.style().css("background: #02050dbb;");
+        pauseShade.background(Colors.hex("#02050dbb"));
         hud.append(pauseShade, 0, 0, Canvas.FILL, Canvas.FILL);
-        pauseText = styledText("SIGNAL PAUSED\n\nPRESS ESC OR P TO RESUME",
-                "padding: 30px; font-scale: 0.58; line-height: 1.8; color: #48f4da; text-align: center; background: #081321f7; border: 2px solid #48f4da99; shadow-depth: 2px;");
+        pauseText = new Text("SIGNAL PAUSED\n\nPRESS ESC OR P TO RESUME")
+                .fontScale(0.58f).lineHeight(1.8f).color(Colors.hex("#48f4da"))
+                .align(TextAlign.CENTER).background(DemoUI.surface(DemoUI.CYAN, 14)).shadow(2);
+        pauseText.layout().padding(30);
         hud.append(pauseText, 0, 0, 650, 180);
         pauseShade.visible(false);
         pauseText.visible(false);
@@ -820,15 +835,17 @@ public final class ArenaScene extends Scene {
 
     private void buildGameOverUi() {
         gameOverShade = new Panel();
-        gameOverShade.style().css("background: #10040be5;");
+        gameOverShade.background(Colors.hex("#10040be5"));
         hud.append(gameOverShade, 0, 0, Canvas.FILL, Canvas.FILL);
-        gameOverTitle = styledText("CORE BREACHED",
-                "font-scale: 0.86; color: #ff5268; text-align: center; shadow-depth: 3px;");
+        gameOverTitle = new Text("CORE BREACHED").fontScale(0.86f).color(Colors.hex("#ff5268"))
+                .align(TextAlign.CENTER).shadow(3);
         hud.append(gameOverTitle, 0, 0, 760, 50);
-        gameOverStats = styledText("", "font-scale: 0.38; color: #eaf6ff; text-align: center; line-height: 1.7;");
+        gameOverStats = new Text("").fontScale(0.38f).color(Colors.hex("#eaf6ff"))
+                .align(TextAlign.CENTER).lineHeight(1.7f);
         hud.append(gameOverStats, 0, 0, 650, 210);
         restartButton = new Button("REBOOT RUN").onClick(this::restart);
-        restartButton.style().css("font-scale: 0.38; background: #461524ee; hover-background: #7a223aff; border: 1px solid #ff5268aa; color: #ffd9df;");
+        restartButton.fontScale(0.38f).skin(buttonSkin("#461524ee", "#7a223aff", "#461524ee",
+                "#ff5268aa", "#ffd9df"));
         hud.append(restartButton, 0, 0, 300, 58);
         gameOverShade.visible(false);
         gameOverTitle.visible(false);
@@ -836,10 +853,20 @@ public final class ArenaScene extends Scene {
         restartButton.visible(false);
     }
 
-    private Text styledText(String value, String css) {
-        Text text = new Text(value);
-        text.style().css(css);
-        return text;
+    private ButtonSkin buttonSkin(String normal, String hovered, String pressed, String border, String text) {
+        Color4f accent = Colors.hex(border);
+        UIMaterial normalMaterial = new UIMaterial().fill(Colors.hex(normal))
+                .border(1, accent).radius(9).glow(accent, 8, 0.12f);
+        UIMaterial hoverMaterial = new UIMaterial().fill(Colors.hex(hovered))
+                .border(1, accent).radius(9).glow(accent, 10, 0.36f)
+                .sheen(Colors.hex("#ffffffaa"), 0.16f, 0.38f, 0.65f);
+        UIMaterial pressedMaterial = new UIMaterial().fill(Colors.hex(pressed))
+                .border(1.5f, accent).radius(9).glow(accent, 6, 0.42f);
+        UIMaterial disabledMaterial = new UIMaterial().fill(Colors.hex("#121923cc"))
+                .border(1, Colors.hex("#8aa0b333")).radius(9);
+        Color4f textColor = Colors.hex(text);
+        return new ButtonSkin(normalMaterial, hoverMaterial, pressedMaterial, hoverMaterial, disabledMaterial,
+                textColor, textColor, textColor, Colors.hex("#718090"));
     }
 
     private void updateHud() {

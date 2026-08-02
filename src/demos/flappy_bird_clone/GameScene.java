@@ -7,6 +7,7 @@ import de.kostari.cloud.core.events.EventInfo;
 import de.kostari.cloud.core.objects.GameObject;
 import de.kostari.cloud.core.physics.PhysicsBody;
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Absolute;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Text;
 import de.kostari.cloud.core.ui.TextAlign;
@@ -49,6 +50,7 @@ public class GameScene extends Scene {
 
     private Font font;
     private Canvas canvas;
+    private Absolute uiLayer;
     private Text titleText;
     private Text gameOverText;
     private Text scoreText;
@@ -143,27 +145,32 @@ public class GameScene extends Scene {
 
     private void createUi() {
         canvas = new Canvas();
+        uiLayer = new Absolute();
 
         titleText = new Text("Flappy Bird");
-        titleText.style()
-                .font(font)
-                .textAlign(TextAlign.CENTER)
-                .css("color: white; shadow-depth: 6px; align-items: center;");
+        titleText.font(font)
+                .align(TextAlign.CENTER)
+                .verticalAlign(de.kostari.cloud.core.ui.AlignItems.CENTER)
+                .color(new de.kostari.cloud.core.utils.types.Color4f(1, 1, 1, 1))
+                .shadow(6);
 
         gameOverText = new Text("Game Over");
-        gameOverText.style()
-                .font(font)
-                .textAlign(TextAlign.CENTER)
-                .css("color: coral; shadow-depth: 6px; align-items: center;");
+        gameOverText.font(font)
+                .align(TextAlign.CENTER)
+                .verticalAlign(de.kostari.cloud.core.ui.AlignItems.CENTER)
+                .color(new de.kostari.cloud.core.utils.types.Color4f(1, 0.5f, 0.31f, 1))
+                .shadow(6);
 
         scoreText = new Text("0");
-        scoreText.style()
-                .font(font)
-                .css("color: white; shadow-depth: 2px;");
+        scoreText.font(font)
+                .color(new de.kostari.cloud.core.utils.types.Color4f(1, 1, 1, 1))
+                .shadow(2);
 
-        canvas.append(scoreText, 20, 15, 160, Canvas.AUTO);
-        canvas.append(titleText, 0, Window.get().getCenter().y / 2, Window.get().getWidth(), Canvas.AUTO);
-        canvas.append(gameOverText, 0, Window.get().getCenter().y, Window.get().getWidth(), Canvas.AUTO);
+        uiLayer.add(scoreText, titleText, gameOverText);
+        uiLayer.position(scoreText).left(20).top(15).width(160);
+        uiLayer.position(titleText).left(0).right(0).anchor(0, 0.25f);
+        uiLayer.position(gameOverText).left(0).right(0).anchor(0, 0.5f);
+        canvas.add(uiLayer);
         updateUi();
     }
 
@@ -176,14 +183,9 @@ public class GameScene extends Scene {
         scoreText.visible(true);
 
         if (showGameOver) {
-            gameOverText.style().fontScale(gameOverBounce);
-            canvas.setBounds(gameOverText, 0,
-                    Window.get().getCenter().y - (font.getFontHeight() * gameOverBounce),
-                    Window.get().getWidth(), Canvas.AUTO);
+            gameOverText.fontScale(gameOverBounce);
         }
 
-        canvas.setBounds(titleText, 0, Window.get().getCenter().y / 2, Window.get().getWidth(), Canvas.AUTO);
-        canvas.setBounds(scoreText, 20, 15, 160, Canvas.AUTO);
     }
 
     private void updateDayNightCycle() {

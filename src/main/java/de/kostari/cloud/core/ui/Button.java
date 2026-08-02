@@ -1,105 +1,93 @@
 package de.kostari.cloud.core.ui;
 
-import de.kostari.cloud.core.utils.render.Render;
-import de.kostari.cloud.core.utils.render.font.Font;
 import de.kostari.cloud.core.utils.types.Color4f;
-import de.kostari.cloud.core.window.Input;
 
-public class Button extends Panel {
+public class Button extends Control {
 
-    private String label;
+    private final Panel panel = new Panel();
+    private final Text text;
+    private ButtonSkin skin = ButtonSkin.defaultSkin();
     private Runnable onClick;
-    private boolean enabled = true;
-    private boolean hovered;
-    private boolean pressed;
 
     public Button(String label) {
-        this.label = label == null ? "" : label;
-        style().css(
-                "padding: 10px 14px; background: #1f2937e6; hover-background: #374151ff; active-background: #111827ff; border: 1px solid #ffffff29; color: white; text-align: center; align-items: center;");
+        text = new Text(label)
+                .align(TextAlign.CENTER)
+                .verticalAlign(AlignItems.CENTER)
+                .wrap(false);
+        panel.layout().padding(10, 14);
+        panel.add(text);
+        add(panel);
+        applySkin();
     }
 
-    public Button label(String label) {
-        this.label = label == null ? "" : label;
+    public Button label(String value) {
+        text.text(value);
         return this;
     }
 
-    public Button onClick(Runnable onClick) {
-        this.onClick = onClick;
+    public String label() {
+        return text.text();
+    }
+
+    public Button onClick(Runnable callback) {
+        onClick = callback;
         return this;
     }
 
-    public Button enabled(boolean enabled) {
-        this.enabled = enabled;
+    public Button skin(ButtonSkin value) {
+        skin = value == null ? ButtonSkin.defaultSkin() : value;
+        applySkin();
         return this;
     }
 
-    public boolean isHovered() {
-        return hovered;
+    public Button fontScale(float value) {
+        text.fontScale(value);
+        return this;
     }
 
-    public boolean isPressed() {
-        return pressed;
+    public Button textColor(Color4f value) {
+        text.color(value);
+        return this;
     }
 
-    @Override
-    protected void drawSelf() {
-        updateInteraction();
-        paintBox(backgroundForState());
-        drawLabel();
+    public Panel panel() {
+        return panel;
     }
 
-    @Override
-    protected float preferredInnerWidth() {
-        Font font = font();
-        return font == null ? 0 : Render.getTextWidth(font, label, style().fontScale());
+    public Text textElement() {
+        return text;
     }
 
     @Override
-    protected float preferredInnerHeight() {
-        Font font = font();
-        return font == null ? 0 : Render.getTextHeight(font) * style().fontScale();
+    public Button enabled(boolean value) {
+        super.enabled(value);
+        return this;
     }
 
-    private void updateInteraction() {
-        hovered = enabled && bounds.contains(Input.getMouseX(), Input.getMouseY());
-        pressed = hovered && Input.mouseButtonDown(0);
-
-        if (hovered && Input.mouseButtonPressed(0) && onClick != null) {
+    @Override
+    protected void onPointerUp(float x, float y, boolean inside) {
+        boolean activate = isEnabled() && isPressed() && inside;
+        super.onPointerUp(x, y, inside);
+        if (activate && onClick != null) {
             onClick.run();
         }
     }
 
-    private Color4f backgroundForState() {
-        if (pressed && style().activeBackgroundColor() != null) {
-            return style().activeBackgroundColor();
+    @Override
+    protected void onKeyPressed(int key) {
+        if (isEnabled() && (key == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER
+                || key == org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE) && onClick != null) {
+            onClick.run();
         }
-        if (hovered && style().hoverBackgroundColor() != null) {
-            return style().hoverBackgroundColor();
-        }
-        return style().backgroundColor();
     }
 
-    private void drawLabel() {
-        Font font = font();
-        if (font == null || label.isEmpty()) {
-            return;
-        }
-
-        float scale = style().fontScale();
-        float textWidth = Render.getTextWidth(font, label, scale);
-        float textHeight = Render.getTextHeight(font) * scale;
-        float x = contentBounds.x + Math.max(0, contentBounds.width - textWidth) * 0.5f;
-        float y = contentBounds.y + Math.max(0, contentBounds.height - textHeight) * 0.5f;
-
-        if (style().shadowDepth() > 0 && style().shadowColor() != null && style().shadowColor().a > 0) {
-            Render.drawText(font, label, x + style().shadowDepth(), y + style().shadowDepth(), scale,
-                    style().shadowColor());
-        }
-        Render.drawText(font, label, x, y, scale, style().color());
+    @Override
+    protected void onStateChanged(UIState previous, UIState current) {
+        applySkin();
     }
 
-    private Font font() {
-        return style().font() == null ? UI.defaultFont() : style().font();
+    private void applySkin() {
+        panel.background(skin.drawable(state()));
+        text.color(skin.textColor(state()));
     }
 }

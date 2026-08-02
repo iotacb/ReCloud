@@ -1,6 +1,7 @@
 package camera_demo;
 
 import de.kostari.cloud.core.scene.Scene;
+import de.kostari.cloud.core.ui.Absolute;
 import de.kostari.cloud.core.ui.Button;
 import de.kostari.cloud.core.ui.Canvas;
 import de.kostari.cloud.core.ui.Flex;
@@ -10,6 +11,7 @@ import de.kostari.cloud.core.utils.Colors;
 import de.kostari.cloud.core.utils.render.Render;
 import de.kostari.cloud.core.window.Input;
 import de.kostari.cloud.core.window.Window;
+import demo_ui.DemoUI;
 
 public class BallsScene extends Scene {
 
@@ -30,7 +32,10 @@ public class BallsScene extends Scene {
         this.cursor = new Player();
         canvas = new Canvas();
         createHud();
-        canvas.append(hud, 16, 16, 300, Canvas.AUTO);
+        Absolute overlay = new Absolute();
+        overlay.add(hud);
+        overlay.position(hud).left(18).top(18).width(310);
+        canvas.add(overlay);
         super.init();
     }
 
@@ -74,26 +79,26 @@ public class BallsScene extends Scene {
 
     private void createHud() {
         hud = new Flex(FlexDirection.COLUMN);
-        hud.style().css(
-                "padding: 14px; gap: 10px; background: #07111fcc; border: 1px solid #67e8f966; color: white;");
+        hud.layout().padding(14);
+        hud.gap(10).background(DemoUI.surface(DemoUI.CYAN, 12));
 
         Text title = new Text("Camera Demo");
-        title.style().css("font-scale: 1.25; color: #67e8f9; shadow-depth: 2px;");
+        title.fontScale(1.25f).color(Colors.hex("#67e8f9")).shadow(2);
 
         statsText = new Text("");
-        statsText.style().css("color: #e0f2fe; shadow-depth: 1px;");
+        statsText.color(Colors.hex("#e0f2fe")).shadow(1);
 
         Flex actions = new Flex(FlexDirection.ROW);
-        actions.style().css("gap: 8px;");
+        actions.gap(8);
 
-        Button burstButton = new Button("Burst 25").onClick(() -> spawnBalls(25));
-        burstButton.style().css("grow: 1;");
+        Button burstButton = DemoUI.button("Burst 25", DemoUI.CYAN, () -> spawnBalls(25));
+        burstButton.layout().grow(1);
 
-        Button centerButton = new Button("Center").onClick(() -> {
+        Button centerButton = DemoUI.button("Center", DemoUI.VIOLET, () -> {
             getCamera().setPosition(0, 0);
             getCamera().setZoom(1);
         });
-        centerButton.style().css("grow: 1;");
+        centerButton.layout().grow(1);
 
         actions.add(burstButton, centerButton);
         hud.add(title, statsText, actions);

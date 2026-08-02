@@ -229,6 +229,22 @@ public class Render {
         drawRect(position.x, position.y, size.x, size.y, centered, color);
     }
 
+    public static void drawGradientRect(float x, float y, float width, float height,
+            Color4f topLeft, Color4f topRight, Color4f bottomRight, Color4f bottomLeft) {
+        queueQuad(x, y, x + width, y, x + width, y + height, x, y + height,
+                0, 0, 1, 1,
+                topLeft == null ? WHITE : topLeft,
+                topRight == null ? WHITE : topRight,
+                bottomRight == null ? WHITE : bottomRight,
+                bottomLeft == null ? WHITE : bottomLeft,
+                whiteTextureId);
+    }
+
+    public static void drawVerticalGradient(float x, float y, float width, float height,
+            Color4f top, Color4f bottom) {
+        drawGradientRect(x, y, width, height, top, top, bottom, bottom);
+    }
+
     public static void drawRotatedRect(float x, float y, float width, float height, boolean centered, Color4f color,
             float angleDegrees) {
         queueRotatedQuad(x, y, width, height, centered, angleDegrees, color, whiteTextureId,
@@ -251,6 +267,16 @@ public class Render {
         }
         queueRotatedQuad(x, y, width, height, centered, 0, color, texture.getTextureId(),
                 texture.getU0(), texture.getV0(), texture.getU1(), texture.getV1());
+    }
+
+    public static void drawTextureRegion(Texture texture, float x, float y, float width, float height,
+            float u0, float v0, float u1, float v1, Color4f color) {
+        if (texture == null || texture.getTextureId() <= 0 || width <= 0 || height <= 0) {
+            return;
+        }
+        Color4f tint = color == null ? WHITE : color;
+        queueQuad(x, y, x + width, y, x + width, y + height, x, y + height,
+                u0, v0, u1, v1, tint, texture.getTextureId());
     }
 
     public static void drawTexture(Texture texture, float x, float y, float width, float height, boolean centered) {
@@ -336,7 +362,7 @@ public class Render {
 
         Color4f tint = color == null ? WHITE : color;
         float xCursor = x;
-        float yCursor = y + getTextHeight(font) * scale;
+        float yCursor = y + font.getAscent() * scale;
 
         for (char c : text.toCharArray()) {
             if (c < 32 || c >= 128) {
@@ -400,7 +426,7 @@ public class Render {
         if (font == null) {
             return 0;
         }
-        return font.getFontHeight() - 14;
+        return font.getLineHeight();
     }
 
     private static void queueRotatedQuad(float x, float y, float width, float height, boolean centered,
@@ -440,6 +466,13 @@ public class Render {
 
     private static void queueQuad(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3,
             float u0, float v0, float u1, float v1, Color4f color, int textureID) {
+        queueQuad(x0, y0, x1, y1, x2, y2, x3, y3, u0, v0, u1, v1,
+                color, color, color, color, textureID);
+    }
+
+    private static void queueQuad(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3,
+            float u0, float v0, float u1, float v1,
+            Color4f color0, Color4f color1, Color4f color2, Color4f color3, int textureID) {
         if (!initialized) {
             return;
         }
@@ -449,10 +482,10 @@ public class Render {
         }
 
         int textureSlot = textureSlot(textureID);
-        putVertex(x0, y0, u0, v0, color, textureSlot);
-        putVertex(x1, y1, u1, v0, color, textureSlot);
-        putVertex(x2, y2, u1, v1, color, textureSlot);
-        putVertex(x3, y3, u0, v1, color, textureSlot);
+        putVertex(x0, y0, u0, v0, color0, textureSlot);
+        putVertex(x1, y1, u1, v0, color1, textureSlot);
+        putVertex(x2, y2, u1, v1, color2, textureSlot);
+        putVertex(x3, y3, u0, v1, color3, textureSlot);
         quadCount++;
     }
 

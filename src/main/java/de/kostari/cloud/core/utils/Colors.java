@@ -62,6 +62,34 @@ public class Colors {
     }
 
     /**
+     * Creates a color from RGB or RGBA hexadecimal notation.
+     */
+    public static Color4f hex(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Color value cannot be null");
+        }
+        String hex = value.strip();
+        if (hex.startsWith("#")) {
+            hex = hex.substring(1);
+        }
+        if (hex.length() == 3 || hex.length() == 4) {
+            StringBuilder expanded = new StringBuilder(hex.length() * 2);
+            for (int i = 0; i < hex.length(); i++) {
+                expanded.append(hex.charAt(i)).append(hex.charAt(i));
+            }
+            hex = expanded.toString();
+        }
+        if (hex.length() != 6 && hex.length() != 8) {
+            throw new IllegalArgumentException("Expected an RGB or RGBA hex color: " + value);
+        }
+        int red = Integer.parseInt(hex.substring(0, 2), 16);
+        int green = Integer.parseInt(hex.substring(2, 4), 16);
+        int blue = Integer.parseInt(hex.substring(4, 6), 16);
+        int alpha = hex.length() == 8 ? Integer.parseInt(hex.substring(6, 8), 16) : 255;
+        return from255(red, green, blue, alpha);
+    }
+
+    /**
      * Creates a new color from a rgb color in the range of 0-255
      * 
      * @param r

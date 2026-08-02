@@ -129,21 +129,21 @@ public final class Tweens {
         if (element == null) {
             throw new IllegalArgumentException("Tween UI element cannot be null.");
         }
-        return value(element.bounds().width, toWidth, duration, value -> element.style().width(value)).target(element);
+        return value(element.bounds().width, toWidth, duration, value -> element.layout().width(value)).target(element);
     }
 
     public static Tween width(UIElement element, float fromWidth, float toWidth, float duration) {
         if (element == null) {
             throw new IllegalArgumentException("Tween UI element cannot be null.");
         }
-        return value(fromWidth, toWidth, duration, value -> element.style().width(value)).target(element);
+        return value(fromWidth, toWidth, duration, value -> element.layout().width(value)).target(element);
     }
 
     public static Tween height(UIElement element, float toHeight, float duration) {
         if (element == null) {
             throw new IllegalArgumentException("Tween UI element cannot be null.");
         }
-        return value(element.bounds().height, toHeight, duration, value -> element.style().height(value))
+        return value(element.bounds().height, toHeight, duration, value -> element.layout().height(value))
                 .target(element);
     }
 
@@ -151,7 +151,7 @@ public final class Tweens {
         if (element == null) {
             throw new IllegalArgumentException("Tween UI element cannot be null.");
         }
-        return value(fromHeight, toHeight, duration, value -> element.style().height(value)).target(element);
+        return value(fromHeight, toHeight, duration, value -> element.layout().height(value)).target(element);
     }
 
     public static Tween size(UIElement element, float toWidth, float toHeight, float duration) {
@@ -167,7 +167,7 @@ public final class Tweens {
         if (element == null) {
             throw new IllegalArgumentException("Tween UI element cannot be null.");
         }
-        return custom(duration, progress -> element.style().size(
+        return custom(duration, progress -> element.layout().size(
                 lerp(fromWidth, toWidth, progress),
                 lerp(fromHeight, toHeight, progress))).target(element);
     }
